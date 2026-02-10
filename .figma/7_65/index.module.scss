@@ -1,0 +1,33 @@
+* {
+  box-sizing: border-box;
+}
+
+.image1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 103px 63px 121px;
+  width: 288px;
+  height: 472px;
+  overflow: hidden;
+  background-image: url(../image/mlet344k-fbftunt.png);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  .maskGroup {
+    width: 162px;
+    height: 177px;
+  }
+
+  .text {
+    margin: 11px 0px 0px;
+    width: 96px;
+    line-height: 30px;
+    letter-spacing: 0;
+    color: #000000;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+  }
+}

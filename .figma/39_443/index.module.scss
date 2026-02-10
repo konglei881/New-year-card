@@ -1,0 +1,18 @@
+* {
+  box-sizing: border-box;
+}
+
+.hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 6px;
+  background: #17171873;
+  padding: 7px;
+  width: 86px;
+  height: 86px;
+
+  .delete {
+    flex-shrink: 0;
+  }
+}

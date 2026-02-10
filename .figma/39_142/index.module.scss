@@ -1,0 +1,17 @@
+* {
+  box-sizing: border-box;
+}
+
+.text {
+  display: -webkit-box;
+  width: 339px;
+  height: 77px;
+  overflow: hidden;
+  line-height: 22px;
+  letter-spacing: 0;
+  color: var(--neutral-Deprecated-text5, #0000004d);
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
