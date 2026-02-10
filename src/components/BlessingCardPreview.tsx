@@ -49,7 +49,7 @@ export default function BlessingCardPreview(props: Props) {
             <img src="/ui/icon-placeholder.svg" alt="" className="h-[60px] w-[60px]" />
           </div>
           <div className="text-base font-medium leading-6 text-[#232339]">祝福卡生成区</div>
-          <div className="text-sm leading-[22px] text-black/30"></div>
+          <div className="text-sm leading-[22px] text-black/30">{props.hint}</div>
         </div>
       ) : (
         <img

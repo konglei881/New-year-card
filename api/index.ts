@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
-import dotenv from "dotenv";
 // @ts-ignore
 import { Signer } from "@volcengine/openapi";
 import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-dotenv.config();
+// Vercel 环境下无需手动调用 dotenv.config()，系统会自动注入环境变量
+// dotenv.config();
 
 const app = express();
 
@@ -15,32 +15,41 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// Gemini AI 初始化
+// 环境变量获取
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
-
-// 环境变量配置
 const ACCESS_KEY_ID = process.env.VOLC_ACCESS_KEY_ID?.trim();
 const SECRET_ACCESS_KEY = process.env.VOLC_SECRET_ACCESS_KEY?.trim();
 const REGION = (process.env.VOLC_REGION || "cn-north-1").trim();
 const SERVICE = (process.env.VOLC_SERVICE || "cv").trim();
 const HOST = "visual.volcengineapi.com";
 
+// Gemini AI 初始化
+const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
+
+// 辅助函数：校验环境变量
+function checkVolcKeys() {
+  if (!ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
+    throw new Error("检测到 Vercel 环境变量 VOLC_ACCESS_KEY_ID 或 VOLC_SECRET_ACCESS_KEY 未配置，请在 Vercel 控制台设置。");
+  }
+}
+
+// 创建一个 Router 来处理 API 请求
+const apiRouter = express.Router();
+
 // 根路由
-app.get("/api", (req, res) => {
+apiRouter.get("/", (req, res) => {
   res.send("🚀 春节祝福卡 API 已就绪！");
 });
 
-// 上传接口 - Vercel 环境下直接返回 base64 或透传
-app.post("/api/upload", (req, res) => {
-  // 在 Vercel 环境下，我们不建议保存文件到磁盘
-  // 建议前端直接处理图片为 Base64
-  res.json({ message: "Please use base64 in frontend" });
+// 上传接口
+apiRouter.post("/upload", (req, res) => {
+  res.json({ message: "Vercel mode: Use base64 for image transmission." });
 });
 
 // 提交任务接口
-app.post("/api/jimeng/submit", async (req, res) => {
+apiRouter.post("/jimeng/submit", async (req, res) => {
   try {
+    checkVolcKeys();
     const { prompt, req_key = "jimeng_t2i_v40", image_urls, binary_data_base64, ...rest } = req.body;
 
     const query = {
@@ -95,7 +104,7 @@ app.post("/api/jimeng/submit", async (req, res) => {
 });
 
 // Gemini AI 生成接口
-app.post("/api/gemini/generate", async (req, res) => {
+apiRouter.post("/gemini/generate", async (req, res) => {
   try {
     if (!genAI) throw new Error("GEMINI_API_KEY 未配置");
 
@@ -121,8 +130,9 @@ app.post("/api/gemini/generate", async (req, res) => {
 });
 
 // 查询任务结果接口
-app.post("/api/jimeng/query", async (req, res) => {
+apiRouter.post("/jimeng/query", async (req, res) => {
     try {
+      checkVolcKeys();
       const { task_id, req_key = "jimeng_t2i_v40" } = req.body;
   
       const query = {
@@ -168,5 +178,9 @@ app.post("/api/jimeng/query", async (req, res) => {
       res.status(500).json({ error: errorData || error.message || "Internal Server Error" });
     }
 });
+
+// 将 Router 挂载到 /api 和 / 两个路径，以确保兼容性
+app.use("/api", apiRouter);
+app.use("/", apiRouter);
 
 export default app;
