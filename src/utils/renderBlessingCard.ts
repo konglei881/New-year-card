@@ -194,7 +194,11 @@ async function renderBlessingCardLocal(input: RenderInput): Promise<RenderOutput
 }
 
 // AI 生成逻辑
-export async function renderBlessingCard(input: RenderInput, useAI = true, aiProvider: 'jimeng' | 'gemini' = 'jimeng'): Promise<RenderOutput> {
+export async function renderBlessingCard(
+  input: RenderInput,
+  useAI = true,
+  aiProvider: 'jimeng' | 'gemini' | 'doubao-4.5' = 'jimeng'
+): Promise<RenderOutput> {
   // 暂时保留本地生成开关，或者如果 AI 失败降级到本地
   if (!useAI) {
     const res = await renderBlessingCardLocal(input);
@@ -226,11 +230,17 @@ export async function renderBlessingCard(input: RenderInput, useAI = true, aiPro
       const prompt = `(2D vector art:1.2), (flat illustration:1.2), (clean anime style:1.1), character portrait, ${input.gender === "female" ? "cute girl" : "handsome boy"}, (keep original clothes and outfit:1.5), (maintain highly detailed facial features and facial proportions of the original person:1.8), simple clean lines, high saturation colors, bold outlines, masterpiece, high quality, professional character design, no shading, no 3D render`;
       
       // 4. 提交任务
+      // 区分模型
+      let model = "jimeng_t2i_v40"; // 默认即梦4.0
+      if (aiProvider === 'doubao-4.5') {
+        model = "doubao-seedream-4.5";
+      }
+
       // 将 scale 降低到 0.6，增加对原图（面部和服装）的保留程度，同时利用提示词引导风格化
-      const taskId = await submitTask(prompt, [imageUrl], 0.6);
+      const taskId = await submitTask(prompt, [imageUrl], 0.6, model);
 
       // 5. 轮询结果
-      resultUrl = await pollTaskResult(taskId);
+      resultUrl = await pollTaskResult(taskId, 120000, model);
     }
 
     // 6. 下载 AI 生成的卡通图像

@@ -38,19 +38,32 @@ export async function uploadImage(file: File): Promise<string> {
 export async function submitTask(
   prompt: string,
   imageUrls: string[] = [],
-  scale = 0.65
+  scale = 0.65,
+  model = "jimeng_t2i_v40"
 ): Promise<string> {
   // 判断传入的是 URL 还是 Base64 (这里我们约定前端统一转 base64 传给后端)
   const isBase64 = imageUrls.length > 0 && !imageUrls[0].startsWith('http');
 
-  const res = await axios.post<SubmitTaskResponse>(`${API_BASE_URL}/submit`, {
-    req_key: "jimeng_t2i_v40",
+  const payload: any = {
+    req_key: model,
     prompt,
     binary_data_base64: isBase64 ? imageUrls : undefined,
     image_urls: !isBase64 ? imageUrls : undefined,
-    force_single: true,
     scale,
-  });
+  };
+
+  // 针对 Doubao-Seedream-4.5 (即 high_aes_general_v20) 需要添加特殊参数
+  // 注意：文档中提到的 "doubao-seedream-4.5" 对应的 req_key 通常是 high_aes_general_v20 或 high_aes_general_v21_L
+  // 如果用户明确指定了 doubao-seedream-4.5，我们这里做一个映射，或者直接透传
+  // 为了安全起见，我们增加 sequential_image_generation 参数
+  if (model.includes("high_aes") || model === "doubao-seedream-4.5") {
+    payload.sequential_image_generation = "disabled"; // 生成单图
+  } else {
+    // 旧版参数
+    payload.force_single = true;
+  }
+
+  const res = await axios.post<SubmitTaskResponse>(`${API_BASE_URL}/submit`, payload);
 
   const taskId = res.data.data?.id || res.data.data?.task_id || res.data.Result?.TaskId;
   
@@ -62,10 +75,10 @@ export async function submitTask(
   return taskId;
 }
 
-export async function queryTask(taskId: string): Promise<string | null> {
+export async function queryTask(taskId: string, model = "jimeng_t2i_v40"): Promise<string | null> {
   const res = await axios.post<QueryTaskResponse>(`${API_BASE_URL}/query`, {
     task_id: taskId,
-    req_key: "jimeng_t2i_v40",
+    req_key: model,
   });
 
   // 兼容不同的成功码或返回结构
@@ -97,13 +110,13 @@ export async function queryTask(taskId: string): Promise<string | null> {
 }
 
 // 轮询工具函数
-export async function pollTaskResult(taskId: string, timeoutMs = 120000): Promise<string> {
+export async function pollTaskResult(taskId: string, timeoutMs = 120000, model = "jimeng_t2i_v40"): Promise<string> {
   const startTime = Date.now();
   let retryCount = 0;
 
   while (Date.now() - startTime < timeoutMs) {
     try {
-      const url = await queryTask(taskId);
+      const url = await queryTask(taskId, model);
       if (url) return url;
       
       // 如果没有报错但也没拿到 URL，说明还在生成中

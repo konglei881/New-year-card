@@ -23,7 +23,7 @@ export default function Home() {
   const [subUrl, setSubUrl] = useState<string | null>(null);
   const [mainBlob, setMainBlob] = useState<Blob | null>(null);
   const [subBlob, setSubBlob] = useState<Blob | null>(null);
-  const [hint, setHint] = useState("上传照片并填写祝福语，即可生成您的专属卡通卡片");
+  const [hint, setHint] = useState("上传照片并填写祝福语，即可生成您的祝福卡");
   
   // 用于存储 AI 生成的原始人物图像，以便在修改文字时直接复用
   const [stylizedAvatar, setStylizedAvatar] = useState<HTMLImageElement | null>(null);
@@ -81,35 +81,50 @@ export default function Home() {
     }
 
     setIsGenerating(true);
-    setHint("正在通过即梦 AI 生成...（约1-3秒）");
+    setHint("正在为您生成专属祝福卡...");
 
     try {
-      // 1. 尝试使用即梦 AI 4.0 生成
+      // 1. 优先使用 Doubao-Seedream-4.5 生成
       const result = await renderBlessingCard({
         gender,
         blessingType,
         blessing: blessingCheck.value,
         avatarFile,
-      }, true, 'jimeng');
+      }, true, 'doubao-4.5');
 
       handleGenerateSuccess(result);
-    } catch (err: any) {
-      console.warn("即梦 AI 失败，正在自动切换到 Nano Banana...", err);
-      setHint("即梦 AI 繁忙，正在切换到 Nano Banana...（约5-10秒）");
-      
+    } catch (doubaoErr: any) {
+      console.warn("Doubao-Seedream-4.5 失败，正在自动切换到即梦 AI 4.0...", doubaoErr);
+      // setHint("Doubao 4.5 繁忙，正在切换到即梦 AI 4.0...（约1-3秒）");
+
       try {
-        // 2. 自动降级切换到 Nano Banana (Gemini)
+        // 2. 自动降级切换到 即梦 AI 4.0
         const result = await renderBlessingCard({
           gender,
           blessingType,
           blessing: blessingCheck.value,
           avatarFile,
-        }, true, 'gemini');
+        }, true, 'jimeng');
 
         handleGenerateSuccess(result);
-      } catch (geminiErr: any) {
-        console.error("所有 AI 引擎均失败:", geminiErr);
-        setHint(geminiErr.message || "生成失败，请重试或更换图片");
+      } catch (jimengErr: any) {
+        console.warn("即梦 AI 失败，正在自动切换到 Nano Banana...", jimengErr);
+        // setHint("即梦 AI 繁忙，正在切换到 Nano Banana...（约5-10秒）");
+        
+        try {
+          // 3. 自动降级切换到 Nano Banana (Gemini)
+          const result = await renderBlessingCard({
+            gender,
+            blessingType,
+            blessing: blessingCheck.value,
+            avatarFile,
+          }, true, 'gemini');
+
+          handleGenerateSuccess(result);
+        } catch (geminiErr: any) {
+          console.error("所有 AI 引擎均失败:", geminiErr);
+          setHint(geminiErr.message || "生成失败，请重试或更换图片");
+        }
       }
     } finally {
       setIsGenerating(false);
