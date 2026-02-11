@@ -18,7 +18,7 @@ export default function BlessingCardPreview(props: Props) {
         hasResult ? "px-2 sm:px-6" : "px-4 sm:px-12",
         props.className
       )}
-      style={{ fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif' }}
+      style={{ fontFamily: '"PingFang SC", sans-serif' }}
     >
       {/* 加载动画叠加层 */}
       {props.isGenerating && (
@@ -44,12 +44,12 @@ export default function BlessingCardPreview(props: Props) {
       )}
 
       {!hasResult ? (
-        <div className="flex max-w-sm flex-col items-center gap-4 text-center">
-          <div>
+        <div className="flex max-w-sm flex-col items-center text-center">
+          <div className="mb-4">
             <img src="/ui/icon-placeholder.svg" alt="" className="h-[60px] w-[60px]" />
           </div>
           <div className="text-base font-medium leading-6 text-[#232339]">祝福卡生成区</div>
-          <div className="text-sm leading-[22px] text-black/30">{props.hint}</div>
+          <div className="mt-2 text-sm leading-[22px] text-black/30">{props.hint}</div>
         </div>
       ) : (
         <img

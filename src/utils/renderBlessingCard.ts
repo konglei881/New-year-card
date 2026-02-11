@@ -108,13 +108,13 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
   const fontSize = 96; // 32px * 3 (scale)
   const lineHeight = 120; // 40px * 3 (scale)
   const color = "#000000";
-  const fontFamily = '"PingFang SC Light", "PingFang SC", sans-serif';
+  const fontFamily = '"PingFang SC", sans-serif';
   const maxWidth = BASE_W - (24 * 2) * 3; // 两侧各留 24px (换算为 Canvas 像素为 72px)
 
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillStyle = color;
-  ctx.font = `300 ${fontSize}px ${fontFamily}`;
+  ctx.font = `normal ${fontSize}px ${fontFamily}`;
 
   // 1. 先按用户输入（空格或回车）进行初步分割
   const manualLines = text.split(/[\n ]/).filter(line => line.length > 0);

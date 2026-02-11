@@ -80,8 +80,8 @@ function MenuSelect<T extends string>(props: {
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex h-[38px] w-full items-center gap-1 rounded-[4px] px-2 text-left",
-                  active ? "bg-[#F5F5F5]" : "bg-white"
+                  "flex h-[38px] w-full items-center gap-1 rounded-[4px] px-2 text-left transition-colors",
+                  active ? "bg-[#F5F5F5]" : "bg-white hover:bg-[#F5F5F5]"
                 )}
               >
                 <span
@@ -187,7 +187,7 @@ export default function BlessingCardForm(props: Props) {
   }
 
   return (
-    <div className={cn("rounded-2xl bg-[#F7F9FC] p-6 overflow-visible", props.className)} style={{ fontFamily: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif' }}>
+    <div className={cn("rounded-2xl bg-[#F7F9FC] p-6 overflow-visible", props.className)} style={{ fontFamily: '"PingFang SC", sans-serif' }}>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <div className="text-sm font-medium leading-[22px] text-black/55">您的性別</div>
@@ -216,7 +216,7 @@ export default function BlessingCardForm(props: Props) {
           <input
             ref={inputRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept="image/*"
             className="hidden"
             onChange={onFileChange}
           />

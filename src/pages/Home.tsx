@@ -23,7 +23,7 @@ export default function Home() {
   const [subUrl, setSubUrl] = useState<string | null>(null);
   const [mainBlob, setMainBlob] = useState<Blob | null>(null);
   const [subBlob, setSubBlob] = useState<Blob | null>(null);
-  const [hint, setHint] = useState("请先上传照片，然后输入字幕内容");
+  const [hint, setHint] = useState("上传照片并填写祝福语，即可生成您的专属卡通卡片");
   
   // 用于存储 AI 生成的原始人物图像，以便在修改文字时直接复用
   const [stylizedAvatar, setStylizedAvatar] = useState<HTMLImageElement | null>(null);
@@ -164,7 +164,7 @@ export default function Home() {
           <img src="/ui/logo.svg" alt="" className="h-12 w-12 sm:h-[71px] sm:w-[71px]" />
           <div
             className="text-center text-2xl font-semibold leading-tight text-black sm:text-[40px] md:text-[48px] md:leading-[72px]"
-            style={{ fontFamily: '"Alibaba PuHuiTi 3.0", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif' }}
+            style={{ fontFamily: '"PingFang SC", sans-serif' }}
           >春节个人专属祝福卡</div>
         </div>
 
