@@ -4,7 +4,7 @@ import styles from './index.module.scss';
 
 const Component = () => {
   return (
-    <img src="../image/mljg6b7o-pkyvllc.png" className={styles.frame} />
+    <img src="../image/mljhojor-ki0qr6l.png" className={styles.frame} />
   );
 }
 
