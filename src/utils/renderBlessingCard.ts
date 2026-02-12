@@ -16,10 +16,11 @@ type RenderOutput = {
   stylizedAvatar?: HTMLImageElement; // 新增：返回 AI 生成的原始头像对象
 };
 
-const BASE_W = 288;
-const BASE_H = 490;
-const OUT_W = 288;
-const OUT_H = 490;
+const SCALE_FACTOR = 4;
+const BASE_W = 288 * SCALE_FACTOR;
+const BASE_H = 490 * SCALE_FACTOR;
+const OUT_W = 288 * SCALE_FACTOR;
+const OUT_H = 490 * SCALE_FACTOR;
 
 const templateUrlByType: Record<Exclude<BlessingType, "">, string> = {
   caiyun: "/templates/template-caiyun-4x.png",
@@ -29,10 +30,10 @@ const templateUrlByType: Record<Exclude<BlessingType, "">, string> = {
 };
 
 const avatarRectByType: Record<Exclude<BlessingType, "">, { x: number; y: number; width: number; height: number }> = {
-  caiyun: { x: 24, y: 150, width: 190, height: 190 },
-  aiqing: { x: 24, y: 150, width: 190, height: 190 },
-  jiankang: { x: 24, y: 150, width: 190, height: 190 },
-  xueye: { x: 24, y: 150, width: 190, height: 190 },
+  caiyun: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  aiqing: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  jiankang: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  xueye: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
 };
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
@@ -76,7 +77,7 @@ function drawAvatarCover(
   const dy = rect.y + (rect.height - dh) / 2;
 
   ctx.save();
-  drawRoundedRectPath(ctx, rect.x, rect.y, rect.width, rect.height, 16);
+  drawRoundedRectPath(ctx, rect.x, rect.y, rect.width, rect.height, 16 * SCALE_FACTOR);
   ctx.clip();
   ctx.drawImage(img, dx, dy, dw, dh);
   ctx.restore();
@@ -107,11 +108,11 @@ function splitBlessingLinesWithBreaks(text: string, maxPerLine: number, maxLines
 // 绘制祝福文字逻辑
 function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
   // 基础配置
-  const fontSize = 32;
-  const lineHeight = 44;
+  const fontSize = 32 * SCALE_FACTOR;
+  const lineHeight = 44 * SCALE_FACTOR;
   const color = "#000000";
   const fontFamily = '"PingFang SC", sans-serif';
-  const maxWidth = 160; // 固定宽度 160px
+  const maxWidth = 160 * SCALE_FACTOR; // 固定宽度 160px
 
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
@@ -144,8 +145,8 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
 
   // 3. 渲染最终行（限制最多显示 2 行以防溢出布局）
   const displayLines = finalLines.slice(0, 2);
-  const startX = 24; // 左边距 24px
-  const startY = 340; // 顶部距离 340px
+  const startX = 24 * SCALE_FACTOR; // 左边距 24px
+  const startY = 340 * SCALE_FACTOR; // 顶部距离 340px
 
   displayLines.forEach((line, index) => {
     ctx.fillText(line, startX, startY + index * lineHeight);
