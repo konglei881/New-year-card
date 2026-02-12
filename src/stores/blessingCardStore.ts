@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type Gender = "female" | "male" | "";
-export type BlessingType = "caiyun" | "aiqing" | "jiankang" | "";
+export type BlessingType = "caiyun" | "aiqing" | "jiankang" | "xueye" | "";
 
 type State = {
   gender: Gender;

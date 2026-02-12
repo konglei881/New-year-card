@@ -17,20 +17,22 @@ type RenderOutput = {
 };
 
 const BASE_W = 864;
-const BASE_H = 1416;
-const OUT_W = 500;
-const OUT_H = 750;
+const BASE_H = 1470;
+const OUT_W = 864;
+const OUT_H = 1470;
 
 const templateUrlByType: Record<Exclude<BlessingType, "">, string> = {
   caiyun: "/templates/template-caiyun-3x.png",
   aiqing: "/templates/template-aiqing-3x.png",
   jiankang: "/templates/template-jiankang-3x.png",
+  xueye: "/templates/template-xueye-3x.png",
 };
 
 const avatarRectByType: Record<Exclude<BlessingType, "">, { x: number; y: number; width: number; height: number }> = {
-  caiyun: { x: 72, y: 267, width: 720, height: 648 },
-  aiqing: { x: 72, y: 267, width: 720, height: 648 },
-  jiankang: { x: 72, y: 267, width: 720, height: 648 },
+  caiyun: { x: 147, y: 450, width: 570, height: 570 },
+  aiqing: { x: 147, y: 450, width: 570, height: 570 },
+  jiankang: { x: 147, y: 450, width: 570, height: 570 },
+  xueye: { x: 147, y: 450, width: 570, height: 570 },
 };
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
@@ -74,7 +76,7 @@ function drawAvatarCover(
   const dy = rect.y + (rect.height - dh) / 2;
 
   ctx.save();
-  drawRoundedRectPath(ctx, rect.x, rect.y, rect.width, rect.height, 48);
+  drawRoundedRectPath(ctx, rect.x, rect.y, rect.width, rect.height, 16);
   ctx.clip();
   ctx.drawImage(img, dx, dy, dw, dh);
   ctx.restore();
@@ -105,13 +107,13 @@ function splitBlessingLinesWithBreaks(text: string, maxPerLine: number, maxLines
 // 绘制祝福文字逻辑
 function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
   // 基础配置
-  const fontSize = 96; // 32px * 3 (scale)
-  const lineHeight = 120; // 40px * 3 (scale)
+  const fontSize = 96;
+  const lineHeight = 132;
   const color = "#000000";
   const fontFamily = '"PingFang SC", sans-serif';
-  const maxWidth = BASE_W - (24 * 2) * 3; // 两侧各留 24px (换算为 Canvas 像素为 72px)
+  const maxWidth = 570; // 对应 3x 图片宽度
 
-  ctx.textAlign = "center";
+  ctx.textAlign = "left";
   ctx.textBaseline = "top";
   ctx.fillStyle = color;
   ctx.font = `normal ${fontSize}px ${fontFamily}`;
@@ -142,9 +144,22 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
 
   // 3. 渲染最终行（限制最多显示 3 行以防溢出布局）
   const displayLines = finalLines.slice(0, 3);
-  const startX = BASE_W / 2;
-  const startY = 969;
+  const startX = 147; // 左对齐图片 (864-570)/2
+  const startY = 1050; // 图片底部 450+570=1020, +30 padding
 
+  // 绘制半透明背景以遮挡底图文字并提升可读性
+  if (displayLines.length > 0) {
+    const bgPadding = 20;
+    const bgHeight = displayLines.length * lineHeight + bgPadding * 2;
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; // 使用半透明白色背景
+    drawRoundedRectPath(ctx, startX - bgPadding, startY - bgPadding, maxWidth + bgPadding * 2, bgHeight, 20);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 重新设置颜色
+  ctx.fillStyle = color;
   displayLines.forEach((line, index) => {
     ctx.fillText(line, startX, startY + index * lineHeight);
   });

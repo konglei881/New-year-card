@@ -112,6 +112,7 @@ const typeOptions: Array<SelectOption<Exclude<BlessingType, "">>> = [
   { label: "财运", value: "caiyun" },
   { label: "爱情", value: "aiqing" },
   { label: "健康", value: "jiankang" },
+  { label: "学业", value: "xueye" },
 ];
 
 const aiOptions: Array<SelectOption<'jimeng' | 'gemini'>> = [
@@ -282,7 +283,7 @@ export default function BlessingCardForm(props: Props) {
               placeholder="请输入祝福语"
             />
             <div className="pointer-events-none absolute bottom-3 right-3 h-[18px] w-auto text-right text-sm leading-[18px] text-black/30">
-              {blessingCheck.length}/12
+              {blessingCheck.length}/14
             </div>
           </div>
           {blessingError ? <div className="text-sm text-red-600"></div> : null}
