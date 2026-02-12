@@ -57,6 +57,9 @@ export async function submitTask(
   // 如果用户明确指定了 doubao-seedream-4.5，我们这里做一个映射，或者直接透传
   // 为了安全起见，我们增加 sequential_image_generation 参数
   if (model.includes("high_aes") || model === "doubao-seedream-4.5") {
+    // 强制将模型名称映射为官方 API 实际接受的 req_key
+    // 根据火山引擎文档，doubao-seedream-4.5 对应的 req_key 应该是 high_aes_general_v21_L
+    payload.req_key = "high_aes_general_v21_L"; 
     payload.sequential_image_generation = "disabled"; // 生成单图
   } else {
     // 旧版参数
@@ -76,9 +79,12 @@ export async function submitTask(
 }
 
 export async function queryTask(taskId: string, model = "jimeng_t2i_v40"): Promise<string | null> {
+  // 如果是 doubao-4.5，查询时也要用对应的 req_key
+  const reqKey = (model === "doubao-seedream-4.5") ? "high_aes_general_v21_L" : model;
+
   const res = await axios.post<QueryTaskResponse>(`${API_BASE_URL}/query`, {
     task_id: taskId,
-    req_key: model,
+    req_key: reqKey,
   });
 
   // 兼容不同的成功码或返回结构
