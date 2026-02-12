@@ -16,78 +16,30 @@ type RenderOutput = {
   stylizedAvatar?: HTMLImageElement; // 新增：返回 AI 生成的原始头像对象
 };
 
-const SCALE_FACTOR = 4;
-const BASE_W = 288 * SCALE_FACTOR;
-const BASE_H = 490 * SCALE_FACTOR;
+const SCALE_FACTOR = 3;
+const BASE_W = 288 * SCALE_FACTOR; // 864
+const BASE_H = 490 * SCALE_FACTOR; // 1470
 const OUT_W = 288 * SCALE_FACTOR;
 const OUT_H = 490 * SCALE_FACTOR;
 
-type ImageAsset = {
-  url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+const templateUrlByType: Record<Exclude<BlessingType, "">, string> = {
+  caiyun: "/templates/template-caiyun-new.png",
+  aiqing: "/templates/template-aiqing-new.png",
+  jiankang: "/templates/template-jiankang-new.png",
+  xueye: "/templates/template-xueye-new.png",
 };
 
-type CardConfig = {
-  bgColor: string;
-  photoRect: { x: number; y: number; width: number; height: number; color: string };
-  assets: ImageAsset[];
-};
-
-const cardConfigs: Record<Exclude<BlessingType, "">, CardConfig> = {
-  xueye: {
-    bgColor: "#8aa8ff",
-    photoRect: { x: 51, y: 111, width: 190, height: 190, color: "#f1f333" },
-    assets: [
-      { url: "/templates/assets/mljfqlp8-kzp9b82.svg", x: 170, y: 10, width: 147, height: 139 }, // Cap2
-      { url: "/templates/assets/mljfqlp8-ct2g5wo.svg", x: 232, y: 191, width: 30, height: 30 }, // Sparkle
-      { url: "/templates/assets/mljfqlp8-d1maust.svg", x: -16, y: 255, width: 79, height: 73 }, // Cap5
-      { url: "/templates/assets/mljfqlp8-l03sgls.svg", x: 14, y: 431, width: 47, height: 47 }, // Sparkle Bottom
-    ],
-  },
-  jiankang: {
-    bgColor: "#08c3b1",
-    photoRect: { x: 51, y: 111, width: 190, height: 190, color: "#ff90de" },
-    assets: [
-      { url: "/templates/assets/mljfqlqx-d677zhw.svg", x: 17, y: 95, width: 28, height: 28 }, // Sparkle Top
-      { url: "/templates/assets/mljfqlqx-qsgfi1j.svg", x: 1, y: 218, width: 34, height: 63 }, // Vector Left
-      { url: "/templates/assets/mljfqlqx-64cz5uo.svg", x: -1, y: 263, width: 77, height: 74 }, // Group Left Bottom
-      { url: "/templates/assets/mljfqlqx-ni3km9o.png", x: 166, y: 45, width: 128, height: 89 }, // Sticker Comedy
-      { url: "/templates/assets/mljfqlqx-1nli1kx.svg", x: 244, y: 244, width: 38, height: 38 }, // Sparkle Right
-    ],
-  },
-  aiqing: {
-    bgColor: "#ffd000",
-    photoRect: { x: 51, y: 111, width: 190, height: 190, color: "#08c3b1" },
-    assets: [
-      { url: "/templates/assets/mljfqlon-xkxfjyc.svg", x: 177, y: 25, width: 123, height: 117 }, // Group2 Top Right
-      { url: "/templates/assets/mljfqlon-cc89dks.png", x: 238, y: 227, width: 76, height: 36 }, // Coin
-      { url: "/templates/assets/mljfqlon-yn889a1.svg", x: -14, y: 282, width: 68, height: 73 }, // Group3 Bottom Left
-      { url: "/templates/assets/mljfqlon-k6fqvd5.svg", x: 144, y: 64, width: 38, height: 38 }, // Sparkle
-      { url: "/templates/assets/mljfqlon-pzsvbkn.svg", x: 230, y: 431, width: 51, height: 51 }, // Sparkle Bottom Right
-    ],
-  },
-  caiyun: {
-    bgColor: "#ff90de",
-    photoRect: { x: 50, y: 111, width: 190, height: 190, color: "#90a8ed" },
-    assets: [
-      { url: "/templates/assets/mljfqloz-471ezfm.svg", x: 183, y: 35, width: 66, height: 64 }, // Top Right Group
-      { url: "/templates/assets/mljfqloz-5xpwrp3.svg", x: 9, y: 177, width: 37, height: 38 }, // Left Group
-      { url: "/templates/assets/mljfqloz-ln4fpne.svg", x: 217, y: 228, width: 35, height: 34 }, // Photo Group Right
-      { url: "/templates/assets/mljfqloz-k0qvycq.svg", x: 15, y: 263, width: 57, height: 55 }, // Photo Group Left Bottom
-      { url: "/templates/assets/mljfqloz-1kyfozi.svg", x: 244, y: 127, width: 30, height: 30 }, // Right Group (Approx Y)
-      { url: "/templates/assets/mljfqloz-oam48s2.svg", x: 197, y: 414, width: 95, height: 109 }, // Bottom Right Coin
-    ],
-  },
-};
-
+// Center horizontally: (BASE_W - width) / 2
+// BASE_W is 864. Avatar width is 190 * 3 = 570.
+// (864 - 570) / 2 = 147.
+// Y position: The user didn't specify, but let's keep the relative position or adjust as needed.
+// Previous Y was 111 * 4 = 444.
+// Let's keep the Y proportional. 111 * 3 = 333.
 const avatarRectByType: Record<Exclude<BlessingType, "">, { x: number; y: number; width: number; height: number }> = {
-  caiyun: { x: 50 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  aiqing: { x: 51 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  jiankang: { x: 51 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  xueye: { x: 51 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  caiyun: { x: 147, y: 333, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  aiqing: { x: 147, y: 333, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  jiankang: { x: 147, y: 333, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  xueye: { x: 147, y: 333, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
 };
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
@@ -176,10 +128,10 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
   const fontFamily = '"PingFang SC", sans-serif';
   const maxWidth = 160 * SCALE_FACTOR; // 固定宽度 160px
 
-  ctx.textAlign = "left";
+  ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillStyle = color;
-  ctx.font = `normal ${fontSize}px ${fontFamily}`;
+  ctx.font = `bold ${fontSize}px ${fontFamily}`; // 加粗字体
 
   // 1. 先按用户输入（空格或回车）进行初步分割
   const manualLines = text.split(/[\n ]/).filter(line => line.length > 0);
@@ -207,8 +159,8 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
 
   // 3. 渲染最终行（限制最多显示 2 行以防溢出布局）
   const displayLines = finalLines.slice(0, 2);
-  const startX = 24 * SCALE_FACTOR; // 左边距 24px
-  const startY = 340 * SCALE_FACTOR; // 顶部距离 340px
+  const startX = BASE_W / 2; // Center horizontally
+  const startY = 340 * SCALE_FACTOR; // 顶部距离 340px (relative to 1x 288x490, so 340*3 = 1020)
 
   displayLines.forEach((line, index) => {
     ctx.fillText(line, startX, startY + index * lineHeight);
@@ -220,54 +172,9 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
 // 如果需要保留本地渲染，可以改名为 renderBlessingCardLocal
 
 async function drawCardBackground(ctx: CanvasRenderingContext2D, type: Exclude<BlessingType, "">) {
-  const config = cardConfigs[type];
-  
-  // 1. Fill BG
-  ctx.fillStyle = config.bgColor;
-  ctx.fillRect(0, 0, BASE_W, BASE_H);
-
-  // 2. Draw Text "2026"
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
-  ctx.fillStyle = "#000000";
-  // "Katibeh" fallback to serif
-  ctx.font = `normal ${69 * SCALE_FACTOR}px "Katibeh", "Times New Roman", serif`;
-  ctx.fillText("2026", 24 * SCALE_FACTOR, 27 * SCALE_FACTOR);
-
-  // 3. Draw Text "Happy New Year"
-  ctx.font = `normal ${14 * SCALE_FACTOR}px "Karla", "Arial", sans-serif`;
-  ctx.fillText("Happy New Year", 24 * SCALE_FACTOR, (27 + 44) * SCALE_FACTOR);
-
-  // 4. Draw Assets
-  for (const asset of config.assets) {
-    const img = await loadImageFromUrl(asset.url);
-    ctx.drawImage(
-      img, 
-      asset.x * SCALE_FACTOR, 
-      asset.y * SCALE_FACTOR, 
-      asset.width * SCALE_FACTOR, 
-      asset.height * SCALE_FACTOR
-    );
-  }
-
-  // 5. Draw Photo BG Rect (Behind avatar)
-  const pRect = config.photoRect;
-  ctx.save();
-  ctx.fillStyle = pRect.color;
-  ctx.strokeStyle = "#000000";
-  ctx.lineWidth = 2 * SCALE_FACTOR;
-  
-  drawRoundedRectPath(
-      ctx, 
-      pRect.x * SCALE_FACTOR, 
-      pRect.y * SCALE_FACTOR, 
-      pRect.width * SCALE_FACTOR, 
-      pRect.height * SCALE_FACTOR, 
-      16 * SCALE_FACTOR
-  );
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
+  const templateUrl = templateUrlByType[type];
+  const img = await loadImageFromUrl(templateUrl);
+  ctx.drawImage(img, 0, 0, BASE_W, BASE_H);
 }
 
 async function renderBlessingCardLocal(input: RenderInput): Promise<RenderOutput> {
