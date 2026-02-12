@@ -131,7 +131,7 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillStyle = color;
-  ctx.font = `bold ${fontSize}px ${fontFamily}`; // 加粗字体
+  ctx.font = `300 ${fontSize}px ${fontFamily}`; // 细体字体
 
   // 1. 先按用户输入（空格或回车）进行初步分割
   const manualLines = text.split(/[\n ]/).filter(line => line.length > 0);
