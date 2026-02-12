@@ -1,0 +1,121 @@
+* {
+  box-sizing: border-box;
+}
+
+.frame {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #08c3b1;
+  padding: 26px 6px 189px 24px;
+  width: 288px;
+  height: 490px;
+  overflow: hidden;
+
+  .autoWrapper3 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: stretch;
+
+    .autoWrapper {
+      position: relative;
+      width: 105px;
+      height: 82px;
+
+      .group759 {
+        position: absolute;
+        bottom: -15px;
+        left: -7px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .group1 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 105px;
+        height: 82px;
+
+        .a2026 {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 105px;
+          height: 82px;
+          line-height: 82px;
+          letter-spacing: -3.43px;
+          color: #000000;
+          font-family: Katibeh, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 69px;
+        }
+
+        .happyNewYear {
+          position: absolute;
+          top: 44px;
+          left: 0;
+          width: 101px;
+          height: 16px;
+          line-height: 16px;
+          letter-spacing: 0;
+          color: #000000;
+          font-family: Karla, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 14px;
+        }
+      }
+    }
+
+    .autoWrapper2 {
+      position: relative;
+      margin-top: 3px;
+      margin-left: 27px;
+      width: 190px;
+      height: 190px;
+
+      .vector673 {
+        position: absolute;
+        top: 107px;
+        left: -50px;
+        width: 34px;
+        height: 63px;
+      }
+
+      .group572 {
+        position: absolute;
+        bottom: -36px;
+        left: -52px;
+        width: 77px;
+        height: 74px;
+      }
+
+      .stickerComedy {
+        position: absolute;
+        top: -66px;
+        right: -53px;
+        width: 128px;
+        height: 89px;
+        rotate: 30deg;
+      }
+
+      .rectangle2 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        outline-width: 2px;
+        outline-style: solid;
+        outline-color: var(--primary-black, #000000);
+        border-radius: 16px;
+        background: #ff90de;
+        width: 190px;
+        height: 190px;
+      }
+    }
+  }
+
+  .group767 {
+    margin-top: 218px;
+    width: 38px;
+    height: 38px;
+  }
+}

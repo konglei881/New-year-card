@@ -22,18 +22,72 @@ const BASE_H = 490 * SCALE_FACTOR;
 const OUT_W = 288 * SCALE_FACTOR;
 const OUT_H = 490 * SCALE_FACTOR;
 
-const templateUrlByType: Record<Exclude<BlessingType, "">, string> = {
-  caiyun: "/templates/template-caiyun-4x.png",
-  aiqing: "/templates/template-aiqing-4x.png",
-  jiankang: "/templates/template-jiankang-4x.png",
-  xueye: "/templates/template-xueye-4x.png",
+type ImageAsset = {
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+type CardConfig = {
+  bgColor: string;
+  photoRect: { x: number; y: number; width: number; height: number; color: string };
+  assets: ImageAsset[];
+};
+
+const cardConfigs: Record<Exclude<BlessingType, "">, CardConfig> = {
+  xueye: {
+    bgColor: "#8aa8ff",
+    photoRect: { x: 51, y: 111, width: 190, height: 190, color: "#f1f333" },
+    assets: [
+      { url: "/templates/assets/mljfqlp8-kzp9b82.svg", x: 170, y: 10, width: 147, height: 139 }, // Cap2
+      { url: "/templates/assets/mljfqlp8-ct2g5wo.svg", x: 232, y: 191, width: 30, height: 30 }, // Sparkle
+      { url: "/templates/assets/mljfqlp8-d1maust.svg", x: -16, y: 255, width: 79, height: 73 }, // Cap5
+      { url: "/templates/assets/mljfqlp8-l03sgls.svg", x: 14, y: 431, width: 47, height: 47 }, // Sparkle Bottom
+    ],
+  },
+  jiankang: {
+    bgColor: "#08c3b1",
+    photoRect: { x: 51, y: 111, width: 190, height: 190, color: "#ff90de" },
+    assets: [
+      { url: "/templates/assets/mljfqlqx-d677zhw.svg", x: 17, y: 95, width: 28, height: 28 }, // Sparkle Top
+      { url: "/templates/assets/mljfqlqx-qsgfi1j.svg", x: 1, y: 218, width: 34, height: 63 }, // Vector Left
+      { url: "/templates/assets/mljfqlqx-64cz5uo.svg", x: -1, y: 263, width: 77, height: 74 }, // Group Left Bottom
+      { url: "/templates/assets/mljfqlqx-ni3km9o.png", x: 166, y: 45, width: 128, height: 89 }, // Sticker Comedy
+      { url: "/templates/assets/mljfqlqx-1nli1kx.svg", x: 244, y: 244, width: 38, height: 38 }, // Sparkle Right
+    ],
+  },
+  aiqing: {
+    bgColor: "#ffd000",
+    photoRect: { x: 51, y: 111, width: 190, height: 190, color: "#08c3b1" },
+    assets: [
+      { url: "/templates/assets/mljfqlon-xkxfjyc.svg", x: 177, y: 25, width: 123, height: 117 }, // Group2 Top Right
+      { url: "/templates/assets/mljfqlon-cc89dks.png", x: 238, y: 227, width: 76, height: 36 }, // Coin
+      { url: "/templates/assets/mljfqlon-yn889a1.svg", x: -14, y: 282, width: 68, height: 73 }, // Group3 Bottom Left
+      { url: "/templates/assets/mljfqlon-k6fqvd5.svg", x: 144, y: 64, width: 38, height: 38 }, // Sparkle
+      { url: "/templates/assets/mljfqlon-pzsvbkn.svg", x: 230, y: 431, width: 51, height: 51 }, // Sparkle Bottom Right
+    ],
+  },
+  caiyun: {
+    bgColor: "#ff90de",
+    photoRect: { x: 50, y: 111, width: 190, height: 190, color: "#90a8ed" },
+    assets: [
+      { url: "/templates/assets/mljfqloz-471ezfm.svg", x: 183, y: 35, width: 66, height: 64 }, // Top Right Group
+      { url: "/templates/assets/mljfqloz-5xpwrp3.svg", x: 9, y: 177, width: 37, height: 38 }, // Left Group
+      { url: "/templates/assets/mljfqloz-ln4fpne.svg", x: 217, y: 228, width: 35, height: 34 }, // Photo Group Right
+      { url: "/templates/assets/mljfqloz-k0qvycq.svg", x: 15, y: 263, width: 57, height: 55 }, // Photo Group Left Bottom
+      { url: "/templates/assets/mljfqloz-1kyfozi.svg", x: 244, y: 127, width: 30, height: 30 }, // Right Group (Approx Y)
+      { url: "/templates/assets/mljfqloz-oam48s2.svg", x: 197, y: 414, width: 95, height: 109 }, // Bottom Right Coin
+    ],
+  },
 };
 
 const avatarRectByType: Record<Exclude<BlessingType, "">, { x: number; y: number; width: number; height: number }> = {
-  caiyun: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  aiqing: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  jiankang: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  xueye: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  caiyun: { x: 50 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  aiqing: { x: 51 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  jiankang: { x: 51 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  xueye: { x: 51 * SCALE_FACTOR, y: 111 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
 };
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
@@ -80,6 +134,14 @@ function drawAvatarCover(
   drawRoundedRectPath(ctx, rect.x, rect.y, rect.width, rect.height, 16 * SCALE_FACTOR);
   ctx.clip();
   ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
+
+  // 绘制描边 (Stroke)
+  ctx.save();
+  ctx.lineWidth = 2 * SCALE_FACTOR;
+  ctx.strokeStyle = "#000000";
+  drawRoundedRectPath(ctx, rect.x, rect.y, rect.width, rect.height, 16 * SCALE_FACTOR);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -157,22 +219,67 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
 // 这里我们修改 renderBlessingCard 为 AI 生成逻辑
 // 如果需要保留本地渲染，可以改名为 renderBlessingCardLocal
 
-async function renderBlessingCardLocal(input: RenderInput): Promise<RenderOutput> {
-  const templateUrl = templateUrlByType[input.blessingType];
-  const [template, avatar] = await Promise.all([
-    loadImageFromUrl(templateUrl),
-    loadImageFromFile(input.avatarFile),
-  ]);
+async function drawCardBackground(ctx: CanvasRenderingContext2D, type: Exclude<BlessingType, "">) {
+  const config = cardConfigs[type];
+  
+  // 1. Fill BG
+  ctx.fillStyle = config.bgColor;
+  ctx.fillRect(0, 0, BASE_W, BASE_H);
 
+  // 2. Draw Text "2026"
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = "#000000";
+  // "Katibeh" fallback to serif
+  ctx.font = `normal ${69 * SCALE_FACTOR}px "Katibeh", "Times New Roman", serif`;
+  ctx.fillText("2026", 24 * SCALE_FACTOR, 27 * SCALE_FACTOR);
+
+  // 3. Draw Text "Happy New Year"
+  ctx.font = `normal ${14 * SCALE_FACTOR}px "Karla", "Arial", sans-serif`;
+  ctx.fillText("Happy New Year", 24 * SCALE_FACTOR, (27 + 44) * SCALE_FACTOR);
+
+  // 4. Draw Assets
+  for (const asset of config.assets) {
+    const img = await loadImageFromUrl(asset.url);
+    ctx.drawImage(
+      img, 
+      asset.x * SCALE_FACTOR, 
+      asset.y * SCALE_FACTOR, 
+      asset.width * SCALE_FACTOR, 
+      asset.height * SCALE_FACTOR
+    );
+  }
+
+  // 5. Draw Photo BG Rect (Behind avatar)
+  const pRect = config.photoRect;
+  ctx.save();
+  ctx.fillStyle = pRect.color;
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 2 * SCALE_FACTOR;
+  
+  drawRoundedRectPath(
+      ctx, 
+      pRect.x * SCALE_FACTOR, 
+      pRect.y * SCALE_FACTOR, 
+      pRect.width * SCALE_FACTOR, 
+      pRect.height * SCALE_FACTOR, 
+      16 * SCALE_FACTOR
+  );
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+async function renderBlessingCardLocal(input: RenderInput): Promise<RenderOutput> {
   const baseCanvas = document.createElement("canvas");
   baseCanvas.width = BASE_W;
   baseCanvas.height = BASE_H;
   const baseCtx = baseCanvas.getContext("2d");
   if (!baseCtx) throw new Error("Canvas 初始化失败");
 
-  baseCtx.clearRect(0, 0, BASE_W, BASE_H);
-  baseCtx.drawImage(template, 0, 0, BASE_W, BASE_H);
+  await drawCardBackground(baseCtx, input.blessingType);
 
+  const avatar = await loadImageFromFile(input.avatarFile);
   const rect = avatarRectByType[input.blessingType];
   drawAvatarCover(baseCtx, avatar, rect);
   drawBlessingText(baseCtx, input.blessing);
@@ -275,10 +382,8 @@ export async function combineTemplate(
   const baseCtx = baseCanvas.getContext("2d");
   if (!baseCtx) throw new Error("Canvas 初始化失败");
 
-  // 绘制背景模板
-  const templateUrl = templateUrlByType[blessingType];
-  const template = await loadImageFromUrl(templateUrl);
-  baseCtx.drawImage(template, 0, 0, BASE_W, BASE_H);
+  // 绘制背景模板 (Now vectors!)
+  await drawCardBackground(baseCtx, blessingType);
 
   // 在“照片区”绘制卡通人物
   const rect = avatarRectByType[blessingType];
