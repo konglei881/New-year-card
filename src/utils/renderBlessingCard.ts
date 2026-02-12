@@ -16,23 +16,23 @@ type RenderOutput = {
   stylizedAvatar?: HTMLImageElement; // 新增：返回 AI 生成的原始头像对象
 };
 
-const BASE_W = 864;
-const BASE_H = 1470;
-const OUT_W = 864;
-const OUT_H = 1470;
+const BASE_W = 288;
+const BASE_H = 490;
+const OUT_W = 288;
+const OUT_H = 490;
 
 const templateUrlByType: Record<Exclude<BlessingType, "">, string> = {
-  caiyun: "/templates/template-caiyun-3x.png",
-  aiqing: "/templates/template-aiqing-3x.png",
-  jiankang: "/templates/template-jiankang-3x.png",
-  xueye: "/templates/template-xueye-3x.png",
+  caiyun: "/templates/template-caiyun-4x.png",
+  aiqing: "/templates/template-aiqing-4x.png",
+  jiankang: "/templates/template-jiankang-4x.png",
+  xueye: "/templates/template-xueye-4x.png",
 };
 
 const avatarRectByType: Record<Exclude<BlessingType, "">, { x: number; y: number; width: number; height: number }> = {
-  caiyun: { x: 147, y: 450, width: 570, height: 570 },
-  aiqing: { x: 147, y: 450, width: 570, height: 570 },
-  jiankang: { x: 147, y: 450, width: 570, height: 570 },
-  xueye: { x: 147, y: 450, width: 570, height: 570 },
+  caiyun: { x: 24, y: 150, width: 190, height: 190 },
+  aiqing: { x: 24, y: 150, width: 190, height: 190 },
+  jiankang: { x: 24, y: 150, width: 190, height: 190 },
+  xueye: { x: 24, y: 150, width: 190, height: 190 },
 };
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
@@ -107,11 +107,11 @@ function splitBlessingLinesWithBreaks(text: string, maxPerLine: number, maxLines
 // 绘制祝福文字逻辑
 function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
   // 基础配置
-  const fontSize = 96;
-  const lineHeight = 132;
+  const fontSize = 32;
+  const lineHeight = 44;
   const color = "#000000";
   const fontFamily = '"PingFang SC", sans-serif';
-  const maxWidth = 570; // 对应 3x 图片宽度
+  const maxWidth = 160; // 固定宽度 160px
 
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
@@ -142,24 +142,11 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
     }
   });
 
-  // 3. 渲染最终行（限制最多显示 3 行以防溢出布局）
-  const displayLines = finalLines.slice(0, 3);
-  const startX = 147; // 左对齐图片 (864-570)/2
-  const startY = 1050; // 图片底部 450+570=1020, +30 padding
+  // 3. 渲染最终行（限制最多显示 2 行以防溢出布局）
+  const displayLines = finalLines.slice(0, 2);
+  const startX = 24; // 左边距 24px
+  const startY = 340; // 顶部距离 340px
 
-  // 绘制半透明背景以遮挡底图文字并提升可读性
-  if (displayLines.length > 0) {
-    const bgPadding = 20;
-    const bgHeight = displayLines.length * lineHeight + bgPadding * 2;
-    ctx.save();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; // 使用半透明白色背景
-    drawRoundedRectPath(ctx, startX - bgPadding, startY - bgPadding, maxWidth + bgPadding * 2, bgHeight, 20);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // 重新设置颜色
-  ctx.fillStyle = color;
   displayLines.forEach((line, index) => {
     ctx.fillText(line, startX, startY + index * lineHeight);
   });
