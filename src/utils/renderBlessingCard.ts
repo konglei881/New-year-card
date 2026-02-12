@@ -30,10 +30,10 @@ const templateUrlByType: Record<Exclude<BlessingType, "">, string> = {
 };
 
 const avatarRectByType: Record<Exclude<BlessingType, "">, { x: number; y: number; width: number; height: number }> = {
-  caiyun: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  aiqing: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  jiankang: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
-  xueye: { x: 24 * SCALE_FACTOR, y: 150 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  caiyun: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  aiqing: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  jiankang: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
+  xueye: { x: 24 * SCALE_FACTOR, y: 111.25 * SCALE_FACTOR, width: 190 * SCALE_FACTOR, height: 190 * SCALE_FACTOR },
 };
 
 function canvasToBlob(canvas: HTMLCanvasElement) {
