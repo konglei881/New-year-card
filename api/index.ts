@@ -137,7 +137,7 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         });
       }
 
-      console.log("Calling Ark API for Doubao-Seedream-4.5...");
+      console.log("Calling Ark API for Doubao-Seedream-4.5...", `URL: https://${arkHost}${arkPath}`);
       
       const arkResponse = await axios({
         method: arkRequestObj.method,
