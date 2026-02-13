@@ -156,56 +156,31 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
       // 转换 Ark 响应格式为前端兼容的格式
       // Ark Response: { data: [{ url: "...", ... }], created: ... }
       // Frontend expects: { data: { status: "succeeded", results: [{ url: "..." }] } }
+      // 注意：Ark 返回的 URL 可能非常长，或者直接返回 base64 数据
       const arkData = arkResponse.data;
       if (arkData.data && arkData.data.length > 0) {
-        res.json({
-          status: "succeeded", // Make sure this matches what pollTaskResult expects or handle it there
-          data: { // Or just return the data structure as Jimeng expects?
-            // Jimeng polling expects { status: "succeeded", results: [...] }
-            // But here we are in 'submit', usually we return a task_id.
-            // Wait, Ark is synchronous for images? Or async?
-            // "return_url": true usually implies sync return of URL if fast enough, or async.
-            // If Ark returns the image directly, we don't need polling.
-            // BUT the frontend logic (Home.tsx -> renderBlessingCard) expects a task_id and then polls.
-            // If we return the result immediately, we need to adjust the frontend or fake a task_id that resolves immediately.
-            
-            // However, the current frontend code:
-            // 1. submitTask -> returns taskId
-            // 2. pollTaskResult -> loops until status is 'succeeded'
-            
-            // If we return the result here, we are breaking the flow if we don't change frontend.
-            // Strategy: Return a fake task_id, and handle the "query" for this fake task_id to return the result immediately?
-            // OR, better: Since we have the URL, can we just return it?
-            // Let's see src/services/jimeng.ts
-            
-            // In src/services/jimeng.ts:
-            // submitTask returns response.data.data.task_id
-            
-            // If Ark returns the image URL immediately, we can't easily fit into the 'submit -> poll' flow without changes.
-            // UNLESS we use 'sequential_image_generation' which is async?
-            // But Ark /v3/images/generations is typically synchronous (like OpenAI DALL-E).
-            
-            // Let's look at the frontend logic in src/services/jimeng.ts
-          }
-        });
-        
-        // Actually, let's modify the response to look like a "completed task"
-        // And we need to store this result somewhere if we want to "poll" it?
-        // No, Vercel is stateless. We can't store it.
-        
-        // FIX: We must change the frontend to handle immediate results for Doubao-4.5
-        // OR we hack it:
-        // The frontend calls `submitTask`, gets `taskId`.
-        // Then calls `pollTaskResult`.
-        
-        // If Ark returns the image immediately, we can return a special taskId like "DIRECT_URL:<url_base64_encoded>"
-        // And then in `pollTaskResult` (in frontend), if it sees this prefix, it just returns the URL.
+        // 由于 Vercel Serverless Function 对响应体大小有限制（通常为 4.5MB），
+        // 如果 Ark 返回的是 Base64 数据且过大，这里直接返回可能会再次触发 413 或 500 错误。
+        // 但是，如果前端使用的是 URL 模式，这里应该是 URL。
         
         const imageUrl = arkData.data[0].url || arkData.data[0].image_url;
+        
+        // 安全起见，如果 URL 非常长（可能是 Base64），我们尽量缩减返回体
+        // 这里我们构造一个伪造的 task_id 返回给前端，前端会解析它
         // Encode URL to safe string
         const fakeTaskId = `DIRECT_URL:${Buffer.from(imageUrl).toString('base64')}`;
         
-        res.json({
+        // 关键修复：不要直接返回 res.json()，这会自动设置 Content-Type 并发送。
+        // 如果 Vercel 或 Express 已经在前面的步骤中尝试发送了部分响应（虽然不太可能），会报错。
+        // 但这里的报错是 'Cannot set headers after they are sent to the client'，
+        // 通常意味着 res.json() 被调用了两次，或者在 res.json() 之后代码继续执行了。
+        // 我们在下面有 `return;`，理论上不会继续。
+        // 检查 catch 块是否被触发了？或者 validateStatus 导致的？
+        
+        // 另外，如果 response body 太大，Vercel 可能会截断或报错。
+        // 让我们只返回最核心的数据。
+        
+        res.status(200).json({
           data: {
             task_id: fakeTaskId,
             status: "succeeded" 
