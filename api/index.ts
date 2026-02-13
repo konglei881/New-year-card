@@ -97,7 +97,8 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         model: endpointId || "doubao-seedream-4.5", 
         prompt: prompt,
         size: "1024x1024", 
-        return_url: true, 
+        // 移除 return_url 参数，因为它可能导致 400 错误
+        // return_url: true, 
       };
 
       // 处理图片输入
