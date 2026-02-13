@@ -97,12 +97,16 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         arkBody.image_url = image_urls[0];
       }
 
+      // Vercel Edge/Serverless 环境下，axios 可能会有一些兼容性问题，
+      // 这里使用更底层的 fetch 或者确保 header 正确。
+      // 最关键的是 Signer 签名必须正确。
       const arkRequestObj = {
         method: 'POST',
         region: arkRegion,
         pathname: arkPath,
         headers: {
           'Content-Type': 'application/json',
+          // 必须移除 Host header，让 axios/fetch 自动处理，否则可能导致签名错误或 400/401
         },
         body: JSON.stringify(arkBody),
       };
@@ -120,7 +124,13 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         url: `https://${arkHost}${arkPath}`,
         headers: arkRequestObj.headers,
         data: arkRequestObj.body,
+        validateStatus: () => true, // 不要在 4xx/5xx 时抛出异常，让我们自己处理
       });
+
+      if (arkResponse.status !== 200) {
+        console.error("Ark API Error:", arkResponse.data);
+        throw new Error(`Ark API Error: ${arkResponse.status} - ${JSON.stringify(arkResponse.data)}`);
+      }
 
       // 转换 Ark 响应格式为前端兼容的格式
       // Ark Response: { data: [{ url: "...", ... }], created: ... }
