@@ -138,9 +138,13 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
   const finalLines: string[] = [];
 
   // 2. 对每一部分进行自动换行计算
+  // 如果祝福语超过 16 字，截断
+  let totalChars = 0;
   manualLines.forEach(segment => {
     let currentLine = "";
     for (let i = 0; i < segment.length; i++) {
+      if (totalChars >= 16) break; // 超过 16 字不再处理
+      
       const char = segment[i];
       const testLine = currentLine + char;
       const metrics = ctx.measureText(testLine);
@@ -151,6 +155,7 @@ function drawBlessingText(ctx: CanvasRenderingContext2D, text: string) {
       } else {
         currentLine = testLine;
       }
+      totalChars++;
     }
     if (currentLine) {
       finalLines.push(currentLine);
