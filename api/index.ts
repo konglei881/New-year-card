@@ -75,19 +75,29 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
     // 特殊处理：Doubao-Seedream-4.5 (Ark 平台)
     // ---------------------------------------------------------
     if (req_key === "doubao-seedream-4.5") {
-      const arkHost = "ark.cn-beijing.volces.com";
+      // 检查是否配置了 Endpoint ID，如果有则使用 Endpoint 域名
+      const endpointId = process.env.ARK_ENDPOINT_ID;
+      
+      let arkHost = "ark.cn-beijing.volces.com";
+      // 如果提供了 Endpoint ID，通常域名格式为 <endpoint_id>.ark.cn-beijing.volces.com
+      // 或者依然是 ark.cn-beijing.volces.com 但在 path 或 header 中指定 endpoint
+      // 根据最新的 Ark 文档，在线推理 endpoint 调用通常是: https://<endpoint_id>.ark.cn-beijing.volces.com/api/v3/images/generations
+      if (endpointId) {
+        arkHost = `${endpointId}.ark.cn-beijing.volces.com`;
+      }
+      
       const arkPath = "/api/v3/images/generations";
       const arkService = "ark";
       const arkRegion = "cn-beijing";
 
       // 构造 Ark 格式的 Payload
-      // 注意：Ark 图片生成通常遵循 OpenAI 格式，但对于图生图 (Img2Img)，参数可能有所不同
-      // 这里尝试使用适配 Seedream 的参数结构
       const arkBody: any = {
-        model: "doubao-seedream-4.5",
+        // 如果使用了 Endpoint 域名，model 参数通常会被忽略或者需要匹配模型名称
+        // 这里保留 doubao-seedream-4.5 或者使用 endpointId
+        model: endpointId || "doubao-seedream-4.5", 
         prompt: prompt,
-        size: "1024x1024", // 默认尺寸
-        return_url: true, // 返回 URL 而不是 base64
+        size: "1024x1024", 
+        return_url: true, 
       };
 
       // 处理图片输入
