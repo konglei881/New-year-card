@@ -96,7 +96,7 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         // 这里保留 doubao-seedream-4.5 或者使用 endpointId
         model: endpointId || "doubao-seedream-4.5", 
         prompt: prompt,
-        size: "1024x1024", 
+        // size: "1024x1024",  // Seedream 4.5 可能对 size 格式有特殊要求，或者某些 endpoint 不支持该参数，暂时注释掉以使用默认值
         // 移除 return_url 参数，因为它可能导致 400 错误
         // return_url: true, 
       };
