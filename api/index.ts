@@ -100,6 +100,12 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
 
   } catch (error: any) {
     const errorData = error.response?.data;
+    console.error("Jimeng/Volcengine API Error:", {
+      message: error.message,
+      status: error.response?.status,
+      data: errorData,
+      requestBody: req.body // Log the request payload for debugging
+    });
     res.status(500).json({ error: errorData || error.message || "Internal Server Error" });
   }
 });
