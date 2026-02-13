@@ -18,6 +18,7 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 // 环境变量获取
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+const ARK_API_KEY = process.env.ARK_API_KEY; // 新增：火山方舟 API Key
 const ACCESS_KEY_ID = process.env.VOLC_ACCESS_KEY_ID?.trim();
 const SECRET_ACCESS_KEY = process.env.VOLC_SECRET_ACCESS_KEY?.trim();
 const REGION = (process.env.VOLC_REGION || "cn-north-1").trim();
@@ -107,15 +108,23 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         headers: {
           'Content-Type': 'application/json',
           // 必须移除 Host header，让 axios/fetch 自动处理，否则可能导致签名错误或 400/401
-        },
+        } as any,
         body: JSON.stringify(arkBody),
       };
 
-      const arkSigner = new Signer(arkRequestObj, arkService);
-      arkSigner.addAuthorization({
-        accessKeyId: ACCESS_KEY_ID!,
-        secretKey: SECRET_ACCESS_KEY!,
-      });
+      // 优先使用 ARK_API_KEY (Bearer Token)，如果没有则尝试 AK/SK 签名 (Signer)
+      // 注意：Ark 的 OpenAI 兼容接口 (/api/v3/...) 通常推荐使用 API Key
+      if (ARK_API_KEY) {
+        console.log("Using ARK_API_KEY for authentication...");
+        arkRequestObj.headers['Authorization'] = `Bearer ${ARK_API_KEY}`;
+      } else {
+        console.log("Using Volcengine AK/SK Signer for authentication...");
+        const arkSigner = new Signer(arkRequestObj, arkService);
+        arkSigner.addAuthorization({
+          accessKeyId: ACCESS_KEY_ID!,
+          secretKey: SECRET_ACCESS_KEY!,
+        });
+      }
 
       console.log("Calling Ark API for Doubao-Seedream-4.5...");
       
