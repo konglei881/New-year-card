@@ -1,5 +1,6 @@
-import { Upload, Sparkles, Download } from "lucide-react";
+import { Upload, Sparkles, Download, Loader2, RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import type { BlessingType, Gender } from "@/stores/blessingCardStore";
 import { useBlessingCardStore } from "@/stores/blessingCardStore";
 import { cn } from "@/lib/utils";
@@ -127,10 +128,34 @@ export default function BlessingCardForm(props: Props) {
 
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isBlessingLoading, setIsBlessingLoading] = useState(false);
   const blessingCheck = useMemo(() => validateBlessing(blessing), [blessing]);
   const blessingError = "message" in blessingCheck ? blessingCheck.message : null;
 
   const canGenerate = Boolean(avatarFile) && Boolean(gender) && Boolean(blessingType) && blessingCheck.ok && !props.isGenerating;
+
+  // 自动生成祝福语逻辑
+  useEffect(() => {
+    if (!blessingType) return;
+    // 如果已有内容，不覆盖（或者用户切换类型时应该覆盖？通常切换类型意味着想要新的）
+    // 为了体验更好，这里每次切换类型都重新生成
+    generateBlessing(blessingType);
+  }, [blessingType]);
+
+  async function generateBlessing(type: string) {
+    setIsBlessingLoading(true);
+    try {
+      const label = typeOptions.find(o => o.value === type)?.label || type;
+      const res = await axios.post('/api/deepseek/chat', { category: label });
+      if (res.data.text) {
+        setBlessing(res.data.text);
+      }
+    } catch (e) {
+      console.error("Failed to generate blessing", e);
+    } finally {
+      setIsBlessingLoading(false);
+    }
+  }
 
   function pickFile() {
     inputRef.current?.click();
@@ -270,17 +295,36 @@ export default function BlessingCardForm(props: Props) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="text-sm font-medium leading-[22px] text-black/55">填写祝福语</div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium leading-[22px] text-black/55">填写祝福语</div>
+            {blessingType && (
+              <button
+                type="button"
+                onClick={() => generateBlessing(blessingType)}
+                className="flex items-center gap-1 text-xs text-[#FF6E87] hover:text-[#ff5c78] disabled:opacity-50"
+                disabled={isBlessingLoading}
+              >
+                {isBlessingLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3" />
+                )}
+                {isBlessingLoading ? "生成中..." : "换一句"}
+              </button>
+            )}
+          </div>
           <div className="relative">
             <textarea
               value={blessing}
               onChange={(e) => setBlessing(e.target.value)}
               rows={3}
+              disabled={isBlessingLoading}
               className={cn(
                 "h-[77px] w-full resize-none rounded-lg border bg-white px-[11px] py-[5px] text-[14px] font-medium leading-[22px] text-black/[0.92] outline-none placeholder:text-black/30 transition-colors",
-                "border-black/[0.08] focus:border-[#FF6E87] active:border-[#FF6E87]"
+                "border-black/[0.08] focus:border-[#FF6E87] active:border-[#FF6E87]",
+                isBlessingLoading && "opacity-50 cursor-wait"
               )}
-              placeholder="请输入祝福语"
+              placeholder={isBlessingLoading ? "AI 正在思考祝福语..." : "请输入祝福语"}
             />
             <div className="pointer-events-none absolute bottom-3 right-3 h-[18px] w-auto text-right text-sm leading-[18px] text-black/30">
               {blessingCheck.length}/16

@@ -17,6 +17,7 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // 环境变量获取
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const ACCESS_KEY_ID = process.env.VOLC_ACCESS_KEY_ID?.trim();
 const SECRET_ACCESS_KEY = process.env.VOLC_SECRET_ACCESS_KEY?.trim();
 const REGION = (process.env.VOLC_REGION || "cn-north-1").trim();
@@ -126,6 +127,51 @@ apiRouter.post("/gemini/generate", async (req, res) => {
 
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// DeepSeek 生成祝福语接口
+apiRouter.post("/deepseek/chat", async (req, res) => {
+  try {
+    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY 未配置");
+
+    const { category } = req.body;
+    
+    const prompt = `请为我生成一个春节祝福语，类别为"${category}"。
+    要求：
+    1. 总字数在8-14个汉字之间。
+    2. 必须是双数字数。
+    3. 格式必须是两个对称的短语，中间用空格隔开，例如"新年快乐 万事如意"。
+    4. 只需要返回祝福语文本，不要包含任何其他解释、标点符号或引号。`;
+
+    const response = await axios.post(
+      "https://api.deepseek.com/chat/completions",
+      {
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: "你是一个精通中国传统文化的祝福语生成助手。" },
+          { role: "user", content: prompt }
+        ],
+        stream: false,
+        temperature: 1.0
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+        }
+      }
+    );
+
+    const content = response.data.choices[0].message.content.trim();
+    // 简单的后处理，去除可能存在的引号
+    const cleanContent = content.replace(/["'“”]/g, "").trim();
+    
+    res.json({ text: cleanContent });
+
+  } catch (error: any) {
+    console.error("DeepSeek API error:", error.response?.data || error.message);
+    res.status(500).json({ error: error.response?.data?.error?.message || error.message });
   }
 });
 
