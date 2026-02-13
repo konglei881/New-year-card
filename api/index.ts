@@ -117,6 +117,7 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
       if (ARK_API_KEY) {
         console.log("Using ARK_API_KEY for authentication...");
         arkRequestObj.headers['Authorization'] = `Bearer ${ARK_API_KEY}`;
+        // 使用 API Key 时，不需要 Signer 签名，直接发送请求即可
       } else {
         console.log("Using Volcengine AK/SK Signer for authentication...");
         const arkSigner = new Signer(arkRequestObj, arkService);
@@ -131,7 +132,7 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
       const arkResponse = await axios({
         method: arkRequestObj.method,
         url: `https://${arkHost}${arkPath}`,
-        headers: arkRequestObj.headers,
+        headers: arkRequestObj.headers, // 这里包含了 Signer 添加的 Header 或者 Authorization Header
         data: arkRequestObj.body,
         validateStatus: () => true, // 不要在 4xx/5xx 时抛出异常，让我们自己处理
       });
