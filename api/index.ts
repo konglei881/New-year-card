@@ -70,6 +70,76 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
       body.image_urls = image_urls;
     }
 
+    // ---------------------------------------------------------
+    // 特殊处理：Doubao-Seedream-4.5 (Ark 平台)
+    // ---------------------------------------------------------
+    if (req_key === "doubao-seedream-4.5") {
+      const arkHost = "ark.cn-beijing.volces.com";
+      const arkPath = "/api/v3/images/generations";
+      const arkService = "ark";
+      const arkRegion = "cn-beijing";
+
+      // 构造 Ark 格式的 Payload
+      // 注意：Ark 图片生成通常遵循 OpenAI 格式，但对于图生图 (Img2Img)，参数可能有所不同
+      // 这里尝试使用适配 Seedream 的参数结构
+      const arkBody: any = {
+        model: "doubao-seedream-4.5",
+        prompt: prompt,
+        size: "1024x1024", // 默认尺寸
+        return_url: true, // 返回 URL 而不是 base64
+      };
+
+      // 处理图片输入
+      // 如果是 Base64，Ark 通常需要 Data URI 格式
+      if (binary_data_base64 && binary_data_base64.length > 0) {
+        arkBody.image_url = `data:image/png;base64,${binary_data_base64[0]}`;
+      } else if (image_urls && image_urls.length > 0) {
+        arkBody.image_url = image_urls[0];
+      }
+
+      const arkRequestObj = {
+        method: 'POST',
+        region: arkRegion,
+        pathname: arkPath,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(arkBody),
+      };
+
+      const arkSigner = new Signer(arkRequestObj, arkService);
+      arkSigner.addAuthorization({
+        accessKeyId: ACCESS_KEY_ID!,
+        secretKey: SECRET_ACCESS_KEY!,
+      });
+
+      console.log("Calling Ark API for Doubao-Seedream-4.5...");
+      
+      const arkResponse = await axios({
+        method: arkRequestObj.method,
+        url: `https://${arkHost}${arkPath}`,
+        headers: arkRequestObj.headers,
+        data: arkRequestObj.body,
+      });
+
+      // 转换 Ark 响应格式为前端兼容的格式
+      // Ark Response: { data: [{ url: "...", ... }], created: ... }
+      // Frontend expects: { data: { status: "succeeded", results: [{ url: "..." }] } }
+      const arkData = arkResponse.data;
+      if (arkData.data && arkData.data.length > 0) {
+        res.json({
+          data: {
+            status: "succeeded",
+            results: arkData.data.map((item: any) => ({ url: item.url || item.image_url }))
+          }
+        });
+        return; // 结束处理
+      }
+    }
+    // ---------------------------------------------------------
+    // 结束特殊处理
+    // ---------------------------------------------------------
+
     const requestObj = {
       method: 'POST',
       region: REGION,
