@@ -137,12 +137,18 @@ apiRouter.post("/deepseek/chat", async (req, res) => {
 
     const { category } = req.body;
     
-    const prompt = `请为我生成一个春节祝福语，类别为"${category}"。
-    要求：
-    1. 总字数在8-14个汉字之间。
+    // 增加明确的引导和示例，避免 DeepSeek 拒绝回答或输出格式错误
+    const prompt = `请直接生成一个春节祝福语，类别为"${category}"。
+    严格要求：
+    1. 总字数必须在8到16个汉字之间（含空格）。
     2. 必须是双数字数。
-    3. 格式必须是两个对称的短语，中间用空格隔开，例如"新年快乐 万事如意"。
-    4. 只需要返回祝福语文本，不要包含任何其他解释、标点符号或引号。`;
+    3. 格式必须是两个对称的短语，中间用空格隔开。
+    4. 只需要返回祝福语文本，绝对不要包含任何解释、前缀、后缀、标点符号或引号。
+    
+    正确示例：
+    新年快乐 万事如意
+    身体健康 龙马精神
+    财源广进 恭喜发财`;
 
     const response = await axios.post(
       "https://api.deepseek.com/chat/completions",
