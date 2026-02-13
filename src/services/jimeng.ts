@@ -52,17 +52,17 @@ export async function submitTask(
     scale,
   };
 
-  // 针对 Doubao-Seedream-4.5 (即 high_aes_general_v20) 需要添加特殊参数
-  // 注意：文档中提到的 "doubao-seedream-4.5" 对应的 req_key 通常是 high_aes_general_v20 或 high_aes_general_v21_L
-  // 如果用户明确指定了 doubao-seedream-4.5，我们这里做一个映射，或者直接透传
-  // 为了安全起见，我们增加 sequential_image_generation 参数
-  if (model.includes("high_aes") || model === "doubao-seedream-4.5") {
-    // 强制将模型名称映射为官方 API 实际接受的 req_key
-    // 根据火山引擎文档，doubao-seedream-4.5 对应的 req_key 应该是 high_aes_general_v21_L
-    payload.req_key = "high_aes_general_v21_L"; 
+  // 针对 Doubao-Seedream-4.5
+  if (model === "doubao-seedream-4.5") {
+    payload.req_key = "doubao-seedream-4.5";
     payload.sequential_image_generation = "disabled"; // 生成单图
+  } 
+  // 针对 Doubao 1.5 Pro (high_aes_general_v21_L)
+  else if (model.includes("high_aes")) {
+    payload.req_key = "high_aes_general_v21_L"; 
+    payload.sequential_image_generation = "disabled";
   } else {
-    // 旧版参数
+    // 旧版参数 (即梦)
     payload.force_single = true;
   }
 
@@ -79,8 +79,9 @@ export async function submitTask(
 }
 
 export async function queryTask(taskId: string, model = "jimeng_t2i_v40"): Promise<string | null> {
-  // 如果是 doubao-4.5，查询时也要用对应的 req_key
-  const reqKey = (model === "doubao-seedream-4.5") ? "high_aes_general_v21_L" : model;
+  // 如果是 doubao-seedream-4.5，查询时也要用对应的 req_key
+  // 之前错误地映射到了 high_aes_general_v21_L，现在修正为直接透传
+  const reqKey = (model === "doubao-seedream-4.5") ? "doubao-seedream-4.5" : model;
 
   const res = await axios.post<QueryTaskResponse>(`${API_BASE_URL}/query`, {
     task_id: taskId,
