@@ -138,12 +138,59 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
       const arkData = arkResponse.data;
       if (arkData.data && arkData.data.length > 0) {
         res.json({
-          data: {
-            status: "succeeded",
-            results: arkData.data.map((item: any) => ({ url: item.url || item.image_url }))
+          status: "succeeded", // Make sure this matches what pollTaskResult expects or handle it there
+          data: { // Or just return the data structure as Jimeng expects?
+            // Jimeng polling expects { status: "succeeded", results: [...] }
+            // But here we are in 'submit', usually we return a task_id.
+            // Wait, Ark is synchronous for images? Or async?
+            // "return_url": true usually implies sync return of URL if fast enough, or async.
+            // If Ark returns the image directly, we don't need polling.
+            // BUT the frontend logic (Home.tsx -> renderBlessingCard) expects a task_id and then polls.
+            // If we return the result immediately, we need to adjust the frontend or fake a task_id that resolves immediately.
+            
+            // However, the current frontend code:
+            // 1. submitTask -> returns taskId
+            // 2. pollTaskResult -> loops until status is 'succeeded'
+            
+            // If we return the result here, we are breaking the flow if we don't change frontend.
+            // Strategy: Return a fake task_id, and handle the "query" for this fake task_id to return the result immediately?
+            // OR, better: Since we have the URL, can we just return it?
+            // Let's see src/services/jimeng.ts
+            
+            // In src/services/jimeng.ts:
+            // submitTask returns response.data.data.task_id
+            
+            // If Ark returns the image URL immediately, we can't easily fit into the 'submit -> poll' flow without changes.
+            // UNLESS we use 'sequential_image_generation' which is async?
+            // But Ark /v3/images/generations is typically synchronous (like OpenAI DALL-E).
+            
+            // Let's look at the frontend logic in src/services/jimeng.ts
           }
         });
-        return; // 结束处理
+        
+        // Actually, let's modify the response to look like a "completed task"
+        // And we need to store this result somewhere if we want to "poll" it?
+        // No, Vercel is stateless. We can't store it.
+        
+        // FIX: We must change the frontend to handle immediate results for Doubao-4.5
+        // OR we hack it:
+        // The frontend calls `submitTask`, gets `taskId`.
+        // Then calls `pollTaskResult`.
+        
+        // If Ark returns the image immediately, we can return a special taskId like "DIRECT_URL:<url_base64_encoded>"
+        // And then in `pollTaskResult` (in frontend), if it sees this prefix, it just returns the URL.
+        
+        const imageUrl = arkData.data[0].url || arkData.data[0].image_url;
+        // Encode URL to safe string
+        const fakeTaskId = `DIRECT_URL:${Buffer.from(imageUrl).toString('base64')}`;
+        
+        res.json({
+          data: {
+            task_id: fakeTaskId,
+            status: "succeeded" 
+          }
+        });
+        return; 
       }
     }
     // ---------------------------------------------------------

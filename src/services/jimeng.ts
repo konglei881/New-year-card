@@ -118,6 +118,20 @@ export async function queryTask(taskId: string, model = "jimeng_t2i_v40"): Promi
 
 // 轮询工具函数
 export async function pollTaskResult(taskId: string, timeoutMs = 120000, model = "jimeng_t2i_v40"): Promise<string> {
+  // 特殊处理：如果是直传 URL (针对 Doubao-Seedream-4.5)
+  if (taskId.startsWith("DIRECT_URL:")) {
+    const base64Url = taskId.replace("DIRECT_URL:", "");
+    // 解码 URL
+    try {
+      const decodedUrl = atob(base64Url);
+      return decodedUrl;
+    } catch (e) {
+      console.error("Failed to decode direct URL", e);
+      // 如果解码失败，尝试直接返回（万一不是base64）
+      return base64Url;
+    }
+  }
+
   const startTime = Date.now();
   let retryCount = 0;
 
