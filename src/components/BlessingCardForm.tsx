@@ -283,7 +283,7 @@ export default function BlessingCardForm(props: Props) {
               placeholder="请输入祝福语"
             />
             <div className="pointer-events-none absolute bottom-3 right-3 h-[18px] w-auto text-right text-sm leading-[18px] text-black/30">
-              {blessingCheck.length}/14
+              {blessingCheck.length}/16
             </div>
           </div>
           {blessingError ? <div className="text-sm text-red-600"></div> : null}

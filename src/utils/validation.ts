@@ -26,8 +26,8 @@ export function validateBlessing(raw: string): BlessingValidationResult {
     return { ok: false, value, length, message: "祝福语不得少于4字" };
   }
 
-  if (length > 14) {
-    return { ok: false, value, length, message: "祝福语最多14字" };
+  if (length > 16) {
+    return { ok: false, value, length, message: "祝福语最多16字" };
   }
 
   return { ok: true, value, length };
