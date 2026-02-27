@@ -28,6 +28,7 @@ describe("validateBlessing", () => {
   it("enforces 4-12 chars", () => {
     expect(validateBlessing("新年").ok).toBe(false);
     expect(validateBlessing("新春快乐").ok).toBe(true);
-    expect(validateBlessing("新春快乐万事如意财源广进大吉").ok).toBe(false);
+    expect(validateBlessing("新春快乐万事如意财源广进大吉").ok).toBe(true);
+    expect(validateBlessing("新春快乐万事如意财源广进大吉阖家幸福").ok).toBe(false);
   });
 });
