@@ -188,38 +188,37 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         });
         return; 
       }
+    } else {
+        // 非 Doubao-Seedream-4.5 的逻辑，继续执行后续代码
+        // 但为了避免代码冗余，我们把通用逻辑放在 else 块里
+        const requestObj = {
+            method: 'POST',
+            region: REGION,
+            pathname: '/',
+            params: query,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+          };
+      
+          const signer = new Signer(requestObj, SERVICE);
+          signer.addAuthorization({
+            accessKeyId: ACCESS_KEY_ID!,
+            secretKey: SECRET_ACCESS_KEY!,
+          });
+      
+          const url = `https://${HOST}/?Action=${query.Action}&Version=${query.Version}`;
+          
+          const response = await axios({
+              method: requestObj.method,
+              url,
+              headers: requestObj.headers,
+              data: requestObj.body,
+          });
+      
+          res.json(response.data);
     }
-    // ---------------------------------------------------------
-    // 结束特殊处理
-    // ---------------------------------------------------------
-
-    const requestObj = {
-      method: 'POST',
-      region: REGION,
-      pathname: '/',
-      params: query,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    };
-
-    const signer = new Signer(requestObj, SERVICE);
-    signer.addAuthorization({
-      accessKeyId: ACCESS_KEY_ID!,
-      secretKey: SECRET_ACCESS_KEY!,
-    });
-
-    const url = `https://${HOST}/?Action=${query.Action}&Version=${query.Version}`;
-    
-    const response = await axios({
-        method: requestObj.method,
-        url,
-        headers: requestObj.headers,
-        data: requestObj.body,
-    });
-
-    res.json(response.data);
 
   } catch (error: any) {
     const errorData = error.response?.data;
