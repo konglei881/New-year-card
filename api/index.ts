@@ -261,7 +261,14 @@ apiRouter.post("/gemini/generate", async (req, res) => {
 // DeepSeek 生成祝福语接口
 apiRouter.post("/deepseek/chat", async (req, res) => {
   try {
-    if (!DEEPSEEK_API_KEY) throw new Error("DEEPSEEK_API_KEY 未配置");
+    if (!DEEPSEEK_API_KEY) {
+      console.error("DeepSeek API Key missing");
+      throw new Error("DEEPSEEK_API_KEY 未配置");
+    }
+    
+    // Log for debugging
+    console.log("DeepSeek API Key configured (length):", DEEPSEEK_API_KEY.length);
+    console.log("DeepSeek API Requesting category:", req.body.category);
 
     const { category } = req.body;
     
