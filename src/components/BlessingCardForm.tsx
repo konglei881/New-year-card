@@ -144,14 +144,23 @@ export default function BlessingCardForm(props: Props) {
 
   async function generateBlessing(type: string) {
     setIsBlessingLoading(true);
+    // 清空当前内容，显示 placeholder 提示正在生成
+    setBlessing(""); 
     try {
       const label = typeOptions.find(o => o.value === type)?.label || type;
+      console.log("Requesting blessing for:", label); // Debug log
+
       const res = await axios.post('/api/deepseek/chat', { category: label });
+      console.log("Blessing API Response:", res.data); // Debug log
+
       if (res.data.text) {
         setBlessing(res.data.text);
+      } else {
+        console.warn("No text in response:", res.data);
       }
     } catch (e) {
       console.error("Failed to generate blessing", e);
+      // 可以在这里加个 toast 提示用户生成失败
     } finally {
       setIsBlessingLoading(false);
     }

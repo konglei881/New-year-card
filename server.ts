@@ -68,6 +68,72 @@ if (!ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
 console.log(`✅ 已加载 AK: ${ACCESS_KEY_ID.substring(0, 8)}...`);
 console.log(`✅ 已加载 Region: ${REGION}`);
 
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+
+// DeepSeek 生成祝福语接口
+app.post("/api/deepseek/chat", async (req, res) => {
+  try {
+    if (!DEEPSEEK_API_KEY) {
+      console.error("DeepSeek API Key missing in server.ts");
+      throw new Error("DEEPSEEK_API_KEY 未配置");
+    }
+    
+    console.log("DeepSeek API Requesting category:", req.body.category);
+
+    const { category } = req.body;
+
+    // 尝试不同的 DeepSeek 模型
+    // V3 是 deepseek-chat, R1 是 deepseek-reasoner
+    // 如果 deepseek-chat 不稳定，可以尝试切换模型或者增加超时
+    const model = "deepseek-chat"; 
+    
+    // 增加明确的引导和示例，避免 DeepSeek 拒绝回答或输出格式错误
+    const prompt = `请直接生成一个春节祝福语，类别为"${category}"。
+    严格要求：
+    1. 总字数必须在8到16个汉字之间（含空格）。
+    2. 必须是双数字数。
+    3. 格式必须是两个对称的短语，中间用空格隔开。
+    4. 只需要返回祝福语文本，绝对不要包含任何解释、前缀、后缀、标点符号或引号。
+    
+    正确示例：
+    新年快乐 万事如意
+    身体健康 龙马精神
+    财源广进 恭喜发财`;
+
+    const response = await axios.post(
+      "https://api.deepseek.com/chat/completions",
+      {
+        model: model,
+        messages: [
+          { role: "system", content: "你是一个精通中国传统文化的祝福语生成助手。" },
+          { role: "user", content: prompt }
+        ],
+        stream: false,
+        temperature: 1.0,
+        max_tokens: 50 // 限制回复长度，避免超时
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+        },
+        timeout: 10000 // 10秒超时
+      }
+    );
+
+    const content = response.data.choices[0].message.content.trim();
+    // 简单的后处理，去除可能存在的引号
+    const cleanContent = content.replace(/["'“”]/g, "").trim();
+    
+    console.log("DeepSeek Response:", cleanContent);
+    res.json({ text: cleanContent });
+
+  } catch (error: any) {
+    console.error("DeepSeek API error:", error.response?.data || error.message);
+    res.status(500).json({ error: error.response?.data?.error?.message || error.message });
+  }
+});
+
 // 上传接口
 app.post("/api/upload", upload.single("file"), (req, res) => {
   if (!req.file) {
