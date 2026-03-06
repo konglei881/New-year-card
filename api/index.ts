@@ -271,7 +271,12 @@ apiRouter.post("/deepseek/chat", async (req, res) => {
     console.log("DeepSeek API Requesting category:", req.body.category);
 
     const { category } = req.body;
-    
+
+    // 尝试不同的 DeepSeek 模型
+    // V3 是 deepseek-chat, R1 是 deepseek-reasoner
+    // 如果 deepseek-chat 不稳定，可以尝试切换模型或者增加超时
+    const model = "deepseek-chat"; 
+
     // 增加明确的引导和示例，避免 DeepSeek 拒绝回答或输出格式错误
     const prompt = `请直接生成一个春节祝福语，类别为"${category}"。
     严格要求：
@@ -288,19 +293,21 @@ apiRouter.post("/deepseek/chat", async (req, res) => {
     const response = await axios.post(
       "https://api.deepseek.com/chat/completions",
       {
-        model: "deepseek-chat",
+        model: model,
         messages: [
           { role: "system", content: "你是一个精通中国传统文化的祝福语生成助手。" },
           { role: "user", content: prompt }
         ],
         stream: false,
-        temperature: 1.0
+        temperature: 1.0,
+        max_tokens: 50 // 限制回复长度，避免超时
       },
       {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
-        }
+        },
+        timeout: 10000 // 10秒超时
       }
     );
 
