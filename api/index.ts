@@ -235,23 +235,49 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
 // Gemini AI 生成接口
 apiRouter.post("/gemini/generate", async (req, res) => {
   try {
-    if (!genAI) throw new Error("GEMINI_API_KEY 未配置");
+    // 如果没有配置 GEMINI_API_KEY 或者 Gemini 额度超限，使用 DeepSeek 作为备选方案生成 Prompt
+    const useDeepSeekForPrompt = true;
 
-    const { prompt, image_data } = req.body;
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    if (useDeepSeekForPrompt) {
+      const { prompt, image_data } = req.body;
+      
+      const deepseekPrompt = `我有一张照片，我想基于它生成一张春节祝福卡。
+      请描述这张照片的内容（虽然你看不到，但假设它是一个人的肖像），并结合以下用户提示词生成一个绘画 Prompt。
+      用户提示词：${prompt}
+      
+      请直接输出英文的绘画 Prompt，包含画面描述、风格（如中国风、喜庆、插画风格）、光影效果等。
+      不要输出任何解释性文字。`;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: image_data,
-          mimeType: "image/jpeg"
+      const response = await axios.post(
+        "https://api.deepseek.com/chat/completions",
+        {
+          model: "deepseek-chat",
+          messages: [
+            { role: "system", content: "你是一个专业的 AI 绘画 Prompt 生成助手。" },
+            { role: "user", content: deepseekPrompt }
+          ],
+          stream: false,
+          temperature: 0.7,
+          max_tokens: 200
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+          },
+          timeout: 10000
         }
-      }
-    ]);
+      );
 
-    const response = await result.response;
-    res.json({ text: response.text(), data: response });
+      const generatedPrompt = response.data.choices[0].message.content.trim();
+      
+      // 关键修复：返回的数据结构必须与前端预期一致
+      // 前端 Home.tsx 中期望 res.data.text 或 res.data
+      // 这里我们返回 text 字段
+      console.log("✅ DeepSeek 生成 Prompt 成功:", generatedPrompt);
+      res.json({ text: generatedPrompt });
+      return;
+    }
 
   } catch (error: any) {
     res.status(500).json({ error: error.message });

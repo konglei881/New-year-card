@@ -126,8 +126,10 @@ export default function BlessingCardForm(props: Props) {
   const { gender, blessingType, blessing, avatarFile, aiProvider, setGender, setBlessingType, setBlessing, setAvatarFile, setAiProvider } =
     useBlessingCardStore();
 
+
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [model, setModel] = useState("doubao-seedream-4.5"); // 默认使用 Doubao-Seedream-4.5
   const [isBlessingLoading, setIsBlessingLoading] = useState(false);
   const blessingCheck = useMemo(() => validateBlessing(blessing), [blessing]);
   const blessingError = "message" in blessingCheck ? blessingCheck.message : null;
@@ -339,7 +341,8 @@ export default function BlessingCardForm(props: Props) {
               {blessingCheck.length}/16
             </div>
           </div>
-          {blessingError ? <div className="text-sm text-red-600"></div> : null}
+          {/* 这里是之前可能错误显示 div 的位置，现在已经移除了错误的 blessingError 显示 */}
+          {blessingError ? <div className="text-sm text-red-600">{blessingError}</div> : null}
         </div>
 
         <div className="flex gap-3">
