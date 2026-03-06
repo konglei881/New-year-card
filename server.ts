@@ -149,13 +149,8 @@ app.post("/api/jimeng/submit", async (req, res) => {
   try {
     const { prompt, req_key = "jimeng_t2i_v40", image_urls, ...rest } = req.body;
 
-    const query = {
-      Action: "CVSync2AsyncSubmitTask",
-      Version: "2022-08-31",
-    };
-
     // 处理本地图片地址问题
-    let binary_data_base64 = [];
+    let binary_data_base64: string[] = [];
 
     if (image_urls && image_urls.length > 0) {
       for (const url of image_urls) {
@@ -175,56 +170,98 @@ app.post("/api/jimeng/submit", async (req, res) => {
       }
     }
 
-    const body: any = {
-      req_key,
-      prompt,
-      ...rest,
-    };
+    // ---------------------------------------------------------
+    // 特殊处理：Doubao-Seedream-4.5 (Ark 平台)
+    // ---------------------------------------------------------
+    if (req_key === "doubao-seedream-4.5") {
+      // 检查是否配置了 Endpoint ID，如果有则使用 Endpoint 域名
+      const endpointId = process.env.ARK_ENDPOINT_ID;
+      const ARK_API_KEY = process.env.ARK_API_KEY;
+      
+      let arkHost = "ark.cn-beijing.volces.com";
+      // 如果提供了 Endpoint ID，通常域名格式为 <endpoint_id>.ark.cn-beijing.volces.com
+      if (endpointId) {
+        arkHost = `${endpointId}.ark.cn-beijing.volces.com`;
+      }
+      
+      const arkPath = "/api/v3/images/generations";
+      const arkService = "ark";
+      const arkRegion = "cn-beijing";
 
-    if (binary_data_base64.length > 0) {
-      body.binary_data_base64 = binary_data_base64;
-    } else {
-      body.image_urls = image_urls;
+      // 构造 Ark 格式的 Payload
+      const arkBody: any = {
+        model: endpointId || "doubao-seedream-4.5", 
+        prompt: prompt,
+        // size: "1024x1024", 
+      };
+
+      // 处理图片输入
+      if (binary_data_base64 && binary_data_base64.length > 0) {
+        arkBody.image_url = `data:image/png;base64,${binary_data_base64[0]}`;
+      } else if (image_urls && image_urls.length > 0) {
+        arkBody.image_url = image_urls[0];
+      }
+
+      const arkRequestObj = {
+        method: 'POST',
+        region: arkRegion,
+        pathname: arkPath,
+        headers: {
+          'Content-Type': 'application/json',
+        } as any,
+        body: JSON.stringify(arkBody),
+      };
+
+      if (ARK_API_KEY) {
+        console.log("Using ARK_API_KEY for authentication...");
+        arkRequestObj.headers['Authorization'] = `Bearer ${ARK_API_KEY}`;
+      } else {
+        console.log("Using Volcengine AK/SK Signer for authentication...");
+        const arkSigner = new Signer(arkRequestObj, arkService);
+        arkSigner.addAuthorization({
+          accessKeyId: ACCESS_KEY_ID!,
+          secretKey: SECRET_ACCESS_KEY!,
+        });
+      }
+
+      console.log("Calling Ark API for Doubao-Seedream-4.5...", `URL: https://${arkHost}${arkPath}`);
+      
+      const arkResponse = await axios({
+        method: arkRequestObj.method,
+        url: `https://${arkHost}${arkPath}`,
+        headers: arkRequestObj.headers,
+        data: arkRequestObj.body,
+        validateStatus: () => true,
+      });
+
+      if (arkResponse.status !== 200) {
+        console.error("Ark API Error:", arkResponse.data);
+        throw new Error(`Ark API Error: ${arkResponse.status} - ${JSON.stringify(arkResponse.data)}`);
+      }
+
+      const arkData = arkResponse.data;
+      if (arkData.data && arkData.data.length > 0) {
+        const imageUrl = arkData.data[0].url || arkData.data[0].image_url;
+        const fakeTaskId = `DIRECT_URL:${Buffer.from(imageUrl).toString('base64')}`;
+        
+        console.log("✅ Ark (Doubao) 生成成功");
+        res.status(200).json({
+          data: {
+            task_id: fakeTaskId,
+            status: "succeeded" 
+          }
+        });
+        return; 
+      }
     }
+    // ---------------------------------------------------------
+    // 结束特殊处理
+    // ---------------------------------------------------------
 
-    const requestObj = {
-      method: 'POST',
-      region: REGION,
-      pathname: '/',
-      params: query,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+    const query = {
+      Action: "CVSync2AsyncSubmitTask",
+      Version: "2022-08-31",
     };
-
-    const signer = new Signer(requestObj, SERVICE);
-    signer.addAuthorization({
-      accessKeyId: ACCESS_KEY_ID,
-      secretKey: SECRET_ACCESS_KEY,
-    });
-
-    // 打印 Authorization 头部，排查非法字符
-    const headers = requestObj.headers as any;
-    const authHeader = headers['Authorization'] || headers['authorization'];
-    console.log("🔑 Authorization Header (partial):", authHeader?.substring(0, 50) + "...");
-
-    const url = `https://${HOST}/?Action=${query.Action}&Version=${query.Version}`;
-    
-    console.log("🚀 正在提交任务到即梦 AI...");
-    const response = await axios({
-        method: requestObj.method,
-        url,
-        headers: requestObj.headers,
-        data: requestObj.body,
-    });
-
-    // 兼容不同的 ID 返回格式
-    const taskId = response.data.data?.id || response.data.data?.task_id || response.data.Result?.TaskId;
-    console.log("✅ 任务提交成功，响应内容:", JSON.stringify(response.data));
-    console.log("📌 提取到的任务 ID:", taskId);
-    
-    res.json(response.data);
 
   } catch (error: any) {
     const errorData = error.response?.data;

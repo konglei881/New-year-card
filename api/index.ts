@@ -80,8 +80,6 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
       
       let arkHost = "ark.cn-beijing.volces.com";
       // 如果提供了 Endpoint ID，通常域名格式为 <endpoint_id>.ark.cn-beijing.volces.com
-      // 或者依然是 ark.cn-beijing.volces.com 但在 path 或 header 中指定 endpoint
-      // 根据最新的 Ark 文档，在线推理 endpoint 调用通常是: https://<endpoint_id>.ark.cn-beijing.volces.com/api/v3/images/generations
       if (endpointId) {
         arkHost = `${endpointId}.ark.cn-beijing.volces.com`;
       }
@@ -92,43 +90,31 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
 
       // 构造 Ark 格式的 Payload
       const arkBody: any = {
-        // 如果使用了 Endpoint 域名，model 参数通常会被忽略或者需要匹配模型名称
-        // 这里保留 doubao-seedream-4.5 或者使用 endpointId
         model: endpointId || "doubao-seedream-4.5", 
         prompt: prompt,
-        // size: "1024x1024",  // Seedream 4.5 可能对 size 格式有特殊要求，或者某些 endpoint 不支持该参数，暂时注释掉以使用默认值
-        // 移除 return_url 参数，因为它可能导致 400 错误
-        // return_url: true, 
+        // size: "1024x1024", 
       };
 
       // 处理图片输入
-      // 如果是 Base64，Ark 通常需要 Data URI 格式
       if (binary_data_base64 && binary_data_base64.length > 0) {
         arkBody.image_url = `data:image/png;base64,${binary_data_base64[0]}`;
       } else if (image_urls && image_urls.length > 0) {
         arkBody.image_url = image_urls[0];
       }
 
-      // Vercel Edge/Serverless 环境下，axios 可能会有一些兼容性问题，
-      // 这里使用更底层的 fetch 或者确保 header 正确。
-      // 最关键的是 Signer 签名必须正确。
       const arkRequestObj = {
         method: 'POST',
         region: arkRegion,
         pathname: arkPath,
         headers: {
           'Content-Type': 'application/json',
-          // 必须移除 Host header，让 axios/fetch 自动处理，否则可能导致签名错误或 400/401
         } as any,
         body: JSON.stringify(arkBody),
       };
 
-      // 优先使用 ARK_API_KEY (Bearer Token)，如果没有则尝试 AK/SK 签名 (Signer)
-      // 注意：Ark 的 OpenAI 兼容接口 (/api/v3/...) 通常推荐使用 API Key
       if (ARK_API_KEY) {
         console.log("Using ARK_API_KEY for authentication...");
         arkRequestObj.headers['Authorization'] = `Bearer ${ARK_API_KEY}`;
-        // 使用 API Key 时，不需要 Signer 签名，直接发送请求即可
       } else {
         console.log("Using Volcengine AK/SK Signer for authentication...");
         const arkSigner = new Signer(arkRequestObj, arkService);
@@ -143,9 +129,9 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
       const arkResponse = await axios({
         method: arkRequestObj.method,
         url: `https://${arkHost}${arkPath}`,
-        headers: arkRequestObj.headers, // 这里包含了 Signer 添加的 Header 或者 Authorization Header
+        headers: arkRequestObj.headers,
         data: arkRequestObj.body,
-        validateStatus: () => true, // 不要在 4xx/5xx 时抛出异常，让我们自己处理
+        validateStatus: () => true,
       });
 
       if (arkResponse.status !== 200) {
@@ -153,33 +139,12 @@ apiRouter.post("/jimeng/submit", async (req, res) => {
         throw new Error(`Ark API Error: ${arkResponse.status} - ${JSON.stringify(arkResponse.data)}`);
       }
 
-      // 转换 Ark 响应格式为前端兼容的格式
-      // Ark Response: { data: [{ url: "...", ... }], created: ... }
-      // Frontend expects: { data: { status: "succeeded", results: [{ url: "..." }] } }
-      // 注意：Ark 返回的 URL 可能非常长，或者直接返回 base64 数据
       const arkData = arkResponse.data;
       if (arkData.data && arkData.data.length > 0) {
-        // 由于 Vercel Serverless Function 对响应体大小有限制（通常为 4.5MB），
-        // 如果 Ark 返回的是 Base64 数据且过大，这里直接返回可能会再次触发 413 或 500 错误。
-        // 但是，如果前端使用的是 URL 模式，这里应该是 URL。
-        
         const imageUrl = arkData.data[0].url || arkData.data[0].image_url;
-        
-        // 安全起见，如果 URL 非常长（可能是 Base64），我们尽量缩减返回体
-        // 这里我们构造一个伪造的 task_id 返回给前端，前端会解析它
-        // Encode URL to safe string
         const fakeTaskId = `DIRECT_URL:${Buffer.from(imageUrl).toString('base64')}`;
         
-        // 关键修复：不要直接返回 res.json()，这会自动设置 Content-Type 并发送。
-        // 如果 Vercel 或 Express 已经在前面的步骤中尝试发送了部分响应（虽然不太可能），会报错。
-        // 但这里的报错是 'Cannot set headers after they are sent to the client'，
-        // 通常意味着 res.json() 被调用了两次，或者在 res.json() 之后代码继续执行了。
-        // 我们在下面有 `return;`，理论上不会继续。
-        // 检查 catch 块是否被触发了？或者 validateStatus 导致的？
-        
-        // 另外，如果 response body 太大，Vercel 可能会截断或报错。
-        // 让我们只返回最核心的数据。
-        
+        console.log("✅ Ark (Doubao) 生成成功");
         res.status(200).json({
           data: {
             task_id: fakeTaskId,
