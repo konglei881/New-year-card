@@ -219,7 +219,7 @@ async function renderBlessingCardLocal(input: RenderInput): Promise<RenderOutput
 export async function renderBlessingCard(
   input: RenderInput,
   useAI = true,
-  aiProvider: 'jimeng' | 'gemini' | 'doubao-4.5' = 'jimeng'
+  aiProvider: 'jimeng' | 'gemini' | 'doubao-4.5' | 'doubao-seedream-4.5' = 'jimeng'
 ): Promise<RenderOutput> {
   // 暂时保留本地生成开关，或者如果 AI 失败降级到本地
   if (!useAI) {
@@ -249,16 +249,22 @@ export async function renderBlessingCard(
       const imageUrl = await uploadImage(resizedFile);
       
       // 3. 构造 AI 提示词 (优化：保持服装一致，提升面部相似度)
+      // 使用 DeepSeek 优化 Prompt，或者直接使用预设的 Prompt
+      // 注意：这里的 prompt 是作为 base prompt，后续后端可能会通过 DeepSeek 再次优化
       const prompt = `(2D vector art:1.2), (flat illustration:1.2), (clean anime style:1.1), character portrait, ${input.gender === "female" ? "cute girl" : "handsome boy"}, (keep original clothes and outfit:1.5), (maintain highly detailed facial features and facial proportions of the original person:1.8), simple clean lines, high saturation colors, bold outlines, masterpiece, high quality, professional character design, no shading, no 3D render`;
       
       // 4. 提交任务
       // 区分模型
       let model = "jimeng_t2i_v40"; // 默认即梦4.0
       if (aiProvider === 'doubao-4.5') {
+        model = "doubao-seedream-4.5"; // 这里设置为 doubao-seedream-4.5
+      } else if (aiProvider === 'doubao-seedream-4.5') {
+        // 兼容传入全名的情况
         model = "doubao-seedream-4.5";
       }
 
       // 将 scale 降低到 0.6，增加对原图（面部和服装）的保留程度，同时利用提示词引导风格化
+      // 如果是 Seedream，可能对 scale 有不同要求，但 0.6 是个比较安全的起始值
       const taskId = await submitTask(prompt, [imageUrl], 0.6, model);
 
       // 5. 轮询结果

@@ -90,7 +90,7 @@ export default function Home() {
         blessingType,
         blessing: blessingCheck.value,
         avatarFile,
-      }, true, 'doubao-4.5');
+      }, true, 'doubao-seedream-4.5');
 
       handleGenerateSuccess(result);
     } catch (doubaoErr: any) {

@@ -130,6 +130,7 @@ export default function BlessingCardForm(props: Props) {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [model, setModel] = useState("doubao-seedream-4.5"); // 默认使用 Doubao-Seedream-4.5
+  // const [isBlessingLoading, setIsBlessingLoading] = useState(false);
   const [isBlessingLoading, setIsBlessingLoading] = useState(false);
   const blessingCheck = useMemo(() => validateBlessing(blessing), [blessing]);
   const blessingError = "message" in blessingCheck ? blessingCheck.message : null;
